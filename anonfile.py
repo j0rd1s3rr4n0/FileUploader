@@ -39,8 +39,7 @@ logo = """#MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNmmNMMMMMMMMMMMMMMMMMMMMM
 print(logo)
 Tk().withdraw()
 filename = askopenfilename(title="Anonfile Upload File",filetypes=[
-	("Text files","*.txt"),
-	("Parthenoun files","*.pth"),])
+	("All files","*.*"),])
 result = os.system('curl -s -F "file=@'+filename+'" https://api.anonfiles.com/upload > a.bt ')
 fina = "a.bt"
 char1 = '{"status":true,"data":{"file":{"url":{"full":"'
