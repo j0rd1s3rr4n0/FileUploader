@@ -1,10 +1,10 @@
 # FileUploader
 Python Script to Automatice Upload Files on Anonfiles and Bayfiles
 ## Usage
-```Shell
-python anonfiles.py
-```
-or
-```Bash
-python bayfiles.py
+Type `python anonfiles.py` or `python bayfiles.py`
+## Modules Needed ( Python 3 )
+```List
+1. tkinter
+2. os
+3. sys
 ```
