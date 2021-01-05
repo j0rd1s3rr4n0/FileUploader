@@ -12,3 +12,17 @@ Type `python3 bayfiles.py`
 ```
 ```
 Type `python3 anonfiles.py`
+
+## Linux Executable
+ADD PERMITS
+```shell
+sudo chmod +x anonfiles
+sudo chmod +x bayfiles
+```
+EXECUTE
+```shell
+./anonfiles
+./bayfiles
+```
+
+
