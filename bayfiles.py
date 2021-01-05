@@ -75,12 +75,9 @@
 #																		|  O  ||  _  ||___, ||   _]  |  | |     ||   [_ /  \ |
 #																		|     ||  |  ||     ||  |    |  | |     ||     |\    |
 #																		|_____||__|__||____/ |__|   |____||_____||_____| \___|
-                                                                                 
-
 import os,sys
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-
 logo = """
                                                  osN                                              
                                               Ns+//+h                                             
@@ -119,54 +116,33 @@ logo = """
                      `...........................`...........................                       
                                                                                                     """
 print(logo)
-# ABRE FICHERO
 Tk().withdraw()
-#filename = askopenfilename() 
 filename = askopenfilename(title="BayFile Upload File",filetypes=[
 	("Text files","*.txt"),
 	("Parthenoun files","*.pth"),])
-#SUBE FICHERO
 result = os.system('curl -s -F "file=@'+filename+'" https://api.bayfiles.com/upload > a.bt ')
-#resultat = result.replace('"full"','FULL')
-#print(resultat)
-#print(result)
-
 fina = "a.bt"
-
 char1 = '{"status":true,"data":{"file":{"url":{"full":"'
 char2 = 'FULL URL: '
 char3 = '","short":"'
 char4 = '\nSHORT URL: '
 char5 = '"},"metadata":{"id":"'
 char6 = '\n'
-
 filer = open(fina, "r")
 filew = open(fina+'t', "w")
-
 buff = filer.read()
 rbuff = buff.replace(char1, char2)
 rbuff = rbuff.replace(char3, char4)
 rbuff = rbuff.replace(char5, char6)
 andale = os.system('cat a.btt')
-
 filew.write(rbuff)
-
 filer.close()
 filew.close()
-
-"""
-filen = open(fina+'t',"r")
-nono = filen.readline()
-nono = filen.readline(1)
-for line in filen:
-	print(line)
-"""
 nono = os.system('head '+fina+'t -n 2 > '+fina)
 filen = open(fina, "r")
 buffre = filen.read()
 print(buffre)
 filen.close()
-#nono = nono.replace("FULL","AUX")
 os.remove(fina)
 try:
 	os.remove(fina+'t')
@@ -176,8 +152,3 @@ try:
 	os.remove(fina)
 except:
 	a = 'a'
-#print(nono)
-#print(content)
-#"""{"status":true,"data":{"file":{"url":{"full":"https://bayfiles.com/L2z7J05ep8/a_txt","short":"https://bayfiles.com/L2z7J05ep8"},"metadata":{"id":"L2z7J05ep8","name":"a.txt","size":{"bytes":0,"readable":"0 Bytes"}}}}}"""
-
-#EXTRAE EL URL
