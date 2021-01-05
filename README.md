@@ -24,5 +24,9 @@ EXECUTE
 ./anonfiles
 ./bayfiles
 ```
+## Windows Executable
+```shell
+SOON
+```
 
 
