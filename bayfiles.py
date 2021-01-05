@@ -110,7 +110,7 @@ logo = """
    #o///:::::::::/h               ho//:/+sso+oys+/::/+sso+oyo+/::/sdN              o//::::::::://sN
 #Ny+///::::::::://h                  ysys/:::::/sysyso/:::::+syshN                 o///::::::::://+o:
 /::------------::shhhd                 y+/::::/ososyo/::::/ohN              Nhhhhh+/:-------------:\
-               ------:                  Nds+oso/::::+syo+y                  d-------.               
+\n               ------:                  Nds+oso/::::+syo+y                  d-------.               
                ------:                      do//::::/+y                     d-------.               
                ------:NNNNNNNNNNNNNNNNNNNNNNNN y+:/ohNNNNNNNNNNNNNNNNNNNNNNNh-------.               
                      `...........................`...........................                       
@@ -118,8 +118,7 @@ logo = """
 print(logo)
 Tk().withdraw()
 filename = askopenfilename(title="BayFile Upload File",filetypes=[
-	("Text files","*.txt"),
-	("Parthenoun files","*.pth"),])
+  ("All files","*.*"),])
 result = os.system('curl -s -F "file=@'+filename+'" https://api.bayfiles.com/upload > a.bt ')
 fina = "a.bt"
 char1 = '{"status":true,"data":{"file":{"url":{"full":"'
