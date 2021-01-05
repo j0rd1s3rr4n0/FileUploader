@@ -19,6 +19,7 @@ ADD PERMITS
 sudo chmod +x anonfiles
 sudo chmod +x bayfiles
 ```
+
 EXECUTE
 ```shell
 ./anonfiles
