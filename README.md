@@ -6,8 +6,8 @@ Python Script to Automatice Upload Files on Anonfiles and Bayfiles
 ```
 ```
 Type `python3 bayfiles.py`
-```
-```
+
+
 ![alt text](https://anonfiles.com/static/logo.png "AnonFiles")
 ```
 ```
