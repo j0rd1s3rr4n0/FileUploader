@@ -25,9 +25,12 @@ EXECUTE
 ./anonfiles
 ./bayfiles
 ```
+
 ## Windows Executable
 ```shell
-SOON
+start anonfiles.exe
+BAYFILES NOT AVAILABLE YET
 ```
+![alt text](https://i.imgur.com/GMYy43Q.png "Anonfiles Windows")
 
 
