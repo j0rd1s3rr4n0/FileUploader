@@ -25,7 +25,6 @@ All in One file uploaders at one.
 
 You can install executing fileuplaoder_setup.exe and follow the steps.
 
-
 <details>
 <summary>Usage</summary>
 
@@ -54,7 +53,6 @@ start fileUploader.exe
 ##### Installation
 
 You can install executing fileuplaoder_setup.sh.
-
 
 <details>
 <summary>Permissions</summary>
@@ -96,7 +94,7 @@ python3 fileUploader.py
 <details>
   <summary><h4>GoFile</h4></summary>
 
-Description of GoFile
+GoFile.io File Uploader and Downloader
 
 <details>
 <summary>Windows</summary>
@@ -105,21 +103,34 @@ Description of GoFile
 
 You can install executing gofile_setup.exe and follow the steps.
 
-
 <details>
 <summary>Usage</summary>
+<p>Run the program from the command line with the following options:</p>
 
-**Python File**
+  <h3>Options:</h3>
+  <ul>
+    <li><code>-v</code>, <code>--verbose</code>: Enable verbose mode to display detailed information during execution.</li>
+    <li><code>-d, --download-url &lt;url&gt;</code>: Download a file by providing the URL.</li>
+    <li><code>-s, --download &lt;server&gt; &lt;fileId&gt; &lt;fileName&gt;</code>: Download a file by specifying the server, fileId, and fileName.</li>
+    <li><code>-u, --upload &lt;filepath&gt;</code>: Upload a file from a local path.</li>
+    <li><code>--json</code>: Return data in JSON format.</li>
+    <li><code>--xml</code>: Return data in XML format.</li>
+    <li><code>--plaintext</code>: Return data in plain text format.</li>
+    <li><code>-o, --output &lt;output-file&gt;</code>: Save the processed data to a file with the specified name.</li>
+  </ul>
+<h3>Examples:</h3>
+  
+  Upload a file:
+  <code>python gofile.py -u file.txt</code>
 
-```shell
-python3 goFile.py
-```
+Download a file by URL:
+<code>python gofile.py -d https://gofile.io/d/abc123</code>
 
-**Exe File**
+Download a file by server, fileId, and fileName:
+<code>python gofile.py -s server123 fileId456 file.txt</code>
 
-```shell
-start goFile.exe
-```
+  <h2>Output Format</h2>
+  <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
 
 **Right Click to File**
 ![Adjuntar Imagen](imagen de asdasdadas en contexto de menu de archivo)
@@ -134,7 +145,6 @@ start goFile.exe
 ##### Installation
 
 You can install executing gofile_setup.sh.
-
 
 <details>
 <summary>Permissions</summary>
@@ -156,17 +166,33 @@ chmod +x  goFile
 <details>
 <summary>Usage</summary>
 
-**Python File**
+<summary>Usage</summary>
+<p>Run the program from the command line with the following options:</p>
 
-```shell
-python3 goFile.py
-```
+  <h3>Options:</h3>
+  <ul>
+    <li><code>-v</code>, <code>--verbose</code>: Enable verbose mode to display detailed information during execution.</li>
+    <li><code>-d, --download-url &lt;url&gt;</code>: Download a file by providing the URL.</li>
+    <li><code>-s, --download &lt;server&gt; &lt;fileId&gt; &lt;fileName&gt;</code>: Download a file by specifying the server, fileId, and fileName.</li>
+    <li><code>-u, --upload &lt;filepath&gt;</code>: Upload a file from a local path.</li>
+    <li><code>--json</code>: Return data in JSON format.</li>
+    <li><code>--xml</code>: Return data in XML format.</li>
+    <li><code>--plaintext</code>: Return data in plain text format.</li>
+    <li><code>-o, --output &lt;output-file&gt;</code>: Save the processed data to a file with the specified name.</li>
+  </ul>
+<h3>Examples:</h3>
 
-**Binary File**
+Upload a file:
+<code>python gofile.py -u file.txt</code>
 
-```shell
-./goFile
-```
+Download a file by URL:
+<code>python gofile.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
+
+Download a file by server, fileId, and fileName:
+<code>python gofile.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
+
+  <h2>Output Format</h2>
+  <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
 
 </details>
 
@@ -184,7 +210,6 @@ Description of AnonFiles
 ##### Installation
 
 You can install executing anonfiles_setup.exe and follow the steps.
-
 
 <details>
 <summary>Usage</summary>
@@ -214,7 +239,6 @@ start anonFiles.exe
 ##### Installation
 
 You can install executing anonfiles_setup.sh.
-
 
 <details>
 <summary>Permissions</summary>
@@ -265,7 +289,6 @@ Description of BayFiles
 
 You can install executing bayfiles_setup.exe and follow the steps.
 
-
 <details>
 <summary>Usage</summary>
 
@@ -294,7 +317,6 @@ start bayfiles.exe
 ##### Installation
 
 You can install executing bayfiles_setup.sh.
-
 
 <details>
 <summary>Permissions</summary>
