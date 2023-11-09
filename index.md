@@ -5,81 +5,95 @@
   <title>FileUploader</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 0;
-    }
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+}
 
-    h1 {
-      background-color: #0d1117;
-      color: #ffffff;
-      padding: 10px;
-    }
+h1 {
+  background-color: #0d1117;
+  color: #ffffff;
+  padding: 10px;
+  margin: 0;
+  text-align: center;
+}
 
-    h2 {
-      font-size: 24px;
-      margin-top: 20px;
-    }
+details {
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.3s ease-in-out;
+}
 
-    h3 {
-      font-size: 20px;
-      margin-top: 15px;
-    }
+details:hover {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
 
-    h4 {
-      font-size: 18px;
-      margin-top: 15px;
-    }
+summary {
+  cursor: pointer;
+  background-color: #0d1117;
+  color: #ffffff;
+  padding: 10px;
+  margin: 0;
+  user-select: none;
+  transition: background-color 0.3s ease-in-out;
+}
 
-    h5 {
-      font-size: 16px;
-      margin-top: 15px;
-    }
+summary:hover {
+  background-color: #1f6feb;
+}
 
-    h6 {
-      font-size: 14px;
-      margin-top: 15px;
-    }
+summary h2 {
+  margin: 0;
+}
 
-    details {
-      margin-bottom: 20px;
-    }
+details > details {
+  margin-left: 20px;
+  padding: 10px;
+}
 
-    summary {
-      cursor: pointer;
-    }
+img {
+  padding: 10px;
+  height: 50px;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+}
 
-    summary h2, summary h3, summary h4, summary h5, summary h6 {
-      margin: 0;
-    }
+.tech-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  margin: 0;
+  padding: 10px;
+  border-top: 5px solid #0d1117;
+  border-bottom: 5px solid #0d1117;
+}
 
-    details > details {
-      margin-left: 20px;
-    }
+.license {
+  margin: 20px 0;
+}
 
-    img {
-      padding: 10px;
-      height: 50px;
-      filter: drop-shadow(0.4px 1px 1px black);
-    }
+/* Agregar estilos para enlaces, texto y otros elementos según sea necesario */
+a {
+  color: #1f6feb;
+  text-decoration: none;
+  transition: color 0.3s ease-in-out;
+}
 
-    .tech-icons {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #74797e;
-      margin: 0;
-      padding: 0;
-      vertical-align: middle;
-      text-align: center;
-      padding: 10px;
-      border-top: 5px dashed #0d1117;
-      border-bottom: 5px dashed #0d1117;
-    }
+a:hover {
+  color: #0d93fc;
+}
 
-    .license {
-      margin: 20px 0;
-    }
+p {
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+/* Agregar estilos personalizados para elementos adicionales según sea necesario */
+
   </style>
 </head>
 <body>
