@@ -91,19 +91,19 @@ python3 fileUploader.py
 </details>
 </details>
 
-<details>
+<details open>
   <summary><h4>GoFile</h4></summary>
 
 GoFile.io File Uploader and Downloader
 
-<details>
+<detailsopen>
 <summary>Windows</summary>
 
 ##### Installation
 
 You can install executing gofile_setup.exe and follow the steps.
 
-<details>
+<detailsopen>
 <summary>Usage</summary>
 <p>Run the program from the command line with the following options:</p>
 
@@ -120,17 +120,64 @@ You can install executing gofile_setup.exe and follow the steps.
   </ul>
 <h3>Examples:</h3>
   
-  Upload a file:
-  <code>python gofile.py -u file.txt</code>
+Upload a file:
+<code>python gofile.py -u file.txt</code>
 
 Download a file by URL:
-<code>python gofile.py -d https://gofile.io/d/abc123</code>
+<code>python gofile.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
 
 Download a file by server, fileId, and fileName:
-<code>python gofile.py -s server123 fileId456 file.txt</code>
-
+<code>python gofile.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
   <h2>Output Format</h2>
   <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
+
+**XML**  
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<uploadedFile>
+  <status>ok</status>
+  <data>
+    <guestToken>uT0xLP89WVxbjMQVM1iDh5nC5b0ANORa</guestToken>
+    <downloadPage>https://gofile.io/d/5Zisuc</downloadPage>
+    <c0de>5Zisuc</c0de>
+    <parentFolder>10ea022d-a43a-4faf-bcae-2889c7a48e8a</parentFolder>
+    <fileId>fcd000f4-73d1-4966-8c56-20496efd150a</fileId>
+    <fileName>text.txt</fileName>
+    <md5>89da2808465ff4b8a18e192ba873c458</md5>
+    <server>store11</server>
+  </data>
+</uploadedFile>
+```
+
+**JSON***
+```json
+{
+    "status": "ok",
+    "data": {
+        "guestToken": "UJlzsi3EdfdUmr5SlimWPKZn7x8ifJM5",
+        "downloadPage": "https://gofile.io/d/BPWAu8",
+        "code": "BPWAu8",
+        "parentFolder": "ab6f7927-5c19-4ab9-a83a-e4ae3db095e2",
+        "fileId": "6cc4e899-92bc-4b3a-af13-442254b9c105",
+        "fileName": "text.txt",
+        "md5": "89da2808465ff4b8a18e192ba873c458",
+        "server": "store8"
+    }
+}
+```
+**PLAINTEXT**
+```css
+status          : ok
+data :
+    guestToken      : OUWgISULaTNl42Tr5tc8UIiI1Zl8iwY8
+    downloadPage    : https://gofile.io/d/TEza0q
+    code            : TEza0q
+    parentFolder    : a1d87e71-f2c0-43e2-974d-a24e8d587bc6
+    fileId          : 0ec70f4d-4ae6-4449-8674-91af5909fb42
+    fileName        : text.txt
+    md5             : 89da2808465ff4b8a18e192ba873c458
+    server          : store8
+```
 
 **Right Click to File**
 ![Adjuntar Imagen](imagen de asdasdadas en contexto de menu de archivo)
@@ -139,14 +186,14 @@ Download a file by server, fileId, and fileName:
 
 </details>
 
-<details>
+<details open>
 <summary>Linux</summary>
 
 ##### Installation
 
 You can install executing gofile_setup.sh.
 
-<details>
+<details open>
 <summary>Permissions</summary>
 
 **Python File**
@@ -163,13 +210,13 @@ chmod +x  goFile
 
 </details>
 
-<details>
+<details open>
 <summary>Usage</summary>
 
 <summary>Usage</summary>
 <p>Run the program from the command line with the following options:</p>
 
-  <h3>Options:</h3>
+ <h3>Options:</h3>
   <ul>
     <li><code>-v</code>, <code>--verbose</code>: Enable verbose mode to display detailed information during execution.</li>
     <li><code>-d, --download-url &lt;url&gt;</code>: Download a file by providing the URL.</li>
@@ -181,7 +228,7 @@ chmod +x  goFile
     <li><code>-o, --output &lt;output-file&gt;</code>: Save the processed data to a file with the specified name.</li>
   </ul>
 <h3>Examples:</h3>
-
+  
 Upload a file:
 <code>python gofile.py -u file.txt</code>
 
@@ -190,10 +237,56 @@ Download a file by URL:
 
 Download a file by server, fileId, and fileName:
 <code>python gofile.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
-
   <h2>Output Format</h2>
   <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
 
+**XML**  
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<uploadedFile>
+  <status>ok</status>
+  <data>
+    <guestToken>uT0xLP89WVxbjMQVM1iDh5nC5b0ANORa</guestToken>
+    <downloadPage>https://gofile.io/d/5Zisuc</downloadPage>
+    <c0de>5Zisuc</c0de>
+    <parentFolder>10ea022d-a43a-4faf-bcae-2889c7a48e8a</parentFolder>
+    <fileId>fcd000f4-73d1-4966-8c56-20496efd150a</fileId>
+    <fileName>text.txt</fileName>
+    <md5>89da2808465ff4b8a18e192ba873c458</md5>
+    <server>store11</server>
+  </data>
+</uploadedFile>
+```
+
+**JSON***
+```json
+{
+    "status": "ok",
+    "data": {
+        "guestToken": "UJlzsi3EdfdUmr5SlimWPKZn7x8ifJM5",
+        "downloadPage": "https://gofile.io/d/BPWAu8",
+        "code": "BPWAu8",
+        "parentFolder": "ab6f7927-5c19-4ab9-a83a-e4ae3db095e2",
+        "fileId": "6cc4e899-92bc-4b3a-af13-442254b9c105",
+        "fileName": "text.txt",
+        "md5": "89da2808465ff4b8a18e192ba873c458",
+        "server": "store8"
+    }
+}
+```
+**PLAINTEXT**
+```css
+status          : ok
+data :
+    guestToken      : OUWgISULaTNl42Tr5tc8UIiI1Zl8iwY8
+    downloadPage    : https://gofile.io/d/TEza0q
+    code            : TEza0q
+    parentFolder    : a1d87e71-f2c0-43e2-974d-a24e8d587bc6
+    fileId          : 0ec70f4d-4ae6-4449-8674-91af5909fb42
+    fileName        : text.txt
+    md5             : 89da2808465ff4b8a18e192ba873c458
+    server          : store8
+```
 </details>
 
 </details>
