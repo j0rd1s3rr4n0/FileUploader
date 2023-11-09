@@ -3,96 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>FileUploader</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <style>
-    body {
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f0f0f0;
-}
-
-h1 {
-  background-color: #0d1117;
-  color: #ffffff;
-  padding: 10px;
-  margin: 0;
-  text-align: center;
-}
-
-details {
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #ffffff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-details:hover {
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-}
-
-summary {
-  cursor: pointer;
-  background-color: #0d1117;
-  color: #ffffff;
-  padding: 10px;
-  margin: 0;
-  user-select: none;
-  transition: background-color 0.3s ease-in-out;
-}
-
-summary:hover {
-  background-color: #1f6feb;
-}
-
-summary h2 {
-  margin: 0;
-}
-
-details > details {
-  margin-left: 20px;
-  padding: 10px;
-}
-
-img {
-  padding: 10px;
-  height: 50px;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.tech-icons {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #ffffff;
-  margin: 0;
-  padding: 10px;
-  border-top: 5px solid #0d1117;
-  border-bottom: 5px solid #0d1117;
-}
-
-.license {
-  margin: 20px 0;
-}
-
-/* Agregar estilos para enlaces, texto y otros elementos según sea necesario */
-a {
-  color: #1f6feb;
-  text-decoration: none;
-  transition: color 0.3s ease-in-out;
-}
-
-a:hover {
-  color: #0d93fc;
-}
-
-p {
-  line-height: 1.6;
-  font-size: 16px;
-}
-
-/* Agregar estilos personalizados para elementos adicionales según sea necesario */
+    
 
   </style>
 </head>
