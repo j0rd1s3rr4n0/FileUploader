@@ -1,0 +1,3 @@
+# Ignorar archivos de caché de Python
+__pycache__/
+*/__pycache__/
