@@ -465,6 +465,12 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 Please make sure to update tests as appropriate.
 
+| **Service** 	| **What we need** 	| **URL** 	| **Active** 	|
+|-------------	|------------------	|---------	|------------	|
+|**JSONBin**|API KEYs|[Fill te form](https://forms.gle/2J96dZAEYDDJaEcp9)|**YES**|
+|*TEST*|API KEYs|[Fill te form](https://forms.gle/)|**No**|
+|*TEST*|API KEYs|[Fill te form](https://forms.gle/)|**No**|
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
