@@ -15,11 +15,12 @@ class ProviderRegistry:
             self.register(provider)
 
     def register(self, provider):
-        self._providers[provider.info.name] = provider
+        self._providers[provider.info.name.lower()] = provider
 
     def get(self, name):
+        normalized_name = name.lower()
         try:
-            return self._providers[name]
+            return self._providers[normalized_name]
         except KeyError as exc:
             choices = ", ".join(sorted(self._providers))
             raise ProviderError(name, f"Unknown provider '{name}'. Available providers: {choices}") from exc

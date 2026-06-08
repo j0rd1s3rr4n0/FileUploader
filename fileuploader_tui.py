@@ -51,6 +51,15 @@ def request_options(request: TuiRequest) -> dict:
     }
 
 
+def validate_request(request: TuiRequest) -> None:
+    if request.action == "upload" and not request.path:
+        raise ProviderError(request.service, "Provide a file path to upload.", code="path_required")
+    if request.action == "download" and not request.url:
+        raise ProviderError(request.service, "Provide a download URL.", code="url_required")
+    if request.action == "info" and not request.file_id:
+        raise ProviderError(request.service, "Provide a file id.", code="file_id_required")
+
+
 class FileUploaderTui:
     def __init__(self, core=None, console=None):
         self.core = core or FileUploaderCore()
@@ -58,6 +67,7 @@ class FileUploaderTui:
 
     def run_once(self, request: TuiRequest):
         try:
+            validate_request(request)
             if request.action == "upload":
                 result = self.core.upload(request.service, request.path, **request_options(request))
             elif request.action == "download":
@@ -73,17 +83,17 @@ class FileUploaderTui:
             return {"ok": False, "error": exc.to_dict()}
 
     def interactive(self):
-        self.console.print(Panel.fit("FileUploader TUI"))
+        self.console.print(Panel.fit("FileUploader TUI\nPick a provider, choose an action, then fill only the fields requested."))
         self.console.print(service_table(self.core))
         services = [service.name for service in self.core.services(include_deprecated=True)]
         while True:
             service = Prompt.ask("Service", choices=services, default=services[0])
             action = Prompt.ask("Action", choices=["upload", "download", "info"], default="upload")
-            path = Prompt.ask("File path", default="") if action == "upload" else ""
-            url = Prompt.ask("URL", default="") if action == "download" else ""
-            file_id = Prompt.ask("File ID", default="") if action == "info" else ""
-            api_key = Prompt.ask("API key", password=True, default="")
-            api_key_env = Prompt.ask("API key env var", default="")
+            path = Prompt.ask("File path to upload", default="") if action == "upload" else ""
+            url = Prompt.ask("Download URL", default="") if action == "download" else ""
+            file_id = Prompt.ask("Provider file ID", default="") if action == "info" else ""
+            api_key = Prompt.ask("API key, leave blank if not needed", password=True, default="")
+            api_key_env = Prompt.ask("API key environment variable, leave blank if not needed", default="")
             json_output = Confirm.ask("JSON output?", default=False)
 
             payload = self.run_once(

@@ -1,7 +1,7 @@
 import unittest
 
-from fileuploader.models import ProviderInfo, UploadResult
-from fileuploader_tui import FileUploaderTui, TuiRequest, request_options, service_table
+from fileuploader.models import ProviderError, ProviderInfo, UploadResult
+from fileuploader_tui import FileUploaderTui, TuiRequest, request_options, service_table, validate_request
 
 
 class FakeCore:
@@ -31,6 +31,12 @@ class TuiSmokeTests(unittest.TestCase):
 
         self.assertTrue(result["ok"])
         self.assertEqual(result["result"]["provider"], "gofile")
+
+    def test_validate_request_requires_upload_path(self):
+        with self.assertRaises(ProviderError) as error:
+            validate_request(TuiRequest(service="gofile", action="upload"))
+
+        self.assertEqual(error.exception.code, "path_required")
 
 
 if __name__ == "__main__":
