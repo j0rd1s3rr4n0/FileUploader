@@ -6,5 +6,6 @@ idna==3.6
 lxml==4.9.3
 pycparser==2.21
 requests==2.31.0
+rich==13.9.4
 typer==0.12.5
 urllib3==2.1.0
