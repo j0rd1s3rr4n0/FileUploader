@@ -15,6 +15,22 @@ FileUploader is a Python script that simplifies the process of uploading files t
 <details open>
 <summary><h2>Usage</h2></summary>
 
+<details open>
+<summary><h4>Unified Interfaces</h4></summary>
+
+The shared provider layer powers three interfaces:
+
+```shell
+python -m fileuploader services
+python -m fileuploader upload --service gofile path/to/file.txt --json
+python -m fileuploader_gui
+python -m fileuploader_tui
+```
+
+See [docs/interfaces.md](docs/interfaces.md) for CLI, GUI, TUI, and framework notes.
+
+</details>
+
 <details>
 <summary><h4>FileUploader</h4></summary>
 All in One file uploaders at one.
