@@ -1,6 +1,7 @@
 import unittest
 
-from fileuploader_gui import GuiState, build_options, default_state
+from fileuploader.models import ProviderError
+from fileuploader_gui import GuiState, build_options, default_state, validate_state
 
 
 class GuiSmokeTests(unittest.TestCase):
@@ -23,6 +24,12 @@ class GuiSmokeTests(unittest.TestCase):
         self.assertEqual(options["api_key"], "key")
         self.assertEqual(options["api_key_env"], "KEY_ENV")
         self.assertEqual(options["url"], "https://example.test")
+
+    def test_validate_state_requires_upload_file(self):
+        with self.assertRaises(ProviderError) as error:
+            validate_state(GuiState(action="upload", path=""))
+
+        self.assertEqual(error.exception.code, "path_required")
 
 
 if __name__ == "__main__":

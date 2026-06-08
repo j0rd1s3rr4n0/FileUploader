@@ -40,6 +40,15 @@ class CliTests(unittest.TestCase):
         self.assertEqual({"gofile", "bayfiles"}, {item["name"] for item in payload})
 
     @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_services_default_output_is_readable_table(self, _core):
+        result = self.runner.invoke(app, ["services"])
+
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("Service", result.output)
+        self.assertIn("gofile", result.output)
+        self.assertIn("deprecated", result.output)
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
     def test_upload_outputs_json(self, _core):
         result = self.runner.invoke(app, ["upload", "sample.txt", "--service", "gofile", "--json"])
 

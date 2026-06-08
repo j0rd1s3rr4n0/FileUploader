@@ -47,6 +47,11 @@ class ProviderCoreTests(unittest.TestCase):
         self.assertEqual(error.exception.provider, "missing")
         self.assertIn("Unknown provider", error.exception.message)
 
+    def test_provider_lookup_is_case_insensitive(self):
+        provider = create_default_registry().get("GoFile")
+
+        self.assertEqual(provider.info.name, "gofile")
+
     def test_gofile_upload_normalizes_result(self):
         payload = {
             "status": "ok",

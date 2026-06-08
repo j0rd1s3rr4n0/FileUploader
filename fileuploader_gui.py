@@ -31,12 +31,21 @@ def build_options(state: GuiState) -> dict:
     }
 
 
+def validate_state(state: GuiState) -> None:
+    if state.action == "upload" and not state.path:
+        raise ProviderError(state.service, "Choose a file before uploading.", code="path_required")
+    if state.action == "download" and not state.url:
+        raise ProviderError(state.service, "Enter a download URL before downloading.", code="url_required")
+    if state.action == "info" and not state.file_id:
+        raise ProviderError(state.service, "Enter a file id before requesting info.", code="file_id_required")
+
+
 class FileUploaderGui:
     def __init__(self, root, core=None):
         self.root = root
         self.core = core or FileUploaderCore()
         self.root.title("FileUploader")
-        self.root.geometry("760x560")
+        self.root.geometry("840x620")
         self.services = self.core.services(include_deprecated=True)
         self.service_names = [service.name for service in self.services]
         self._build_widgets()
@@ -44,6 +53,11 @@ class FileUploaderGui:
     def _build_widgets(self):
         container = ttk.Frame(self.root, padding=12)
         container.pack(fill="both", expand=True)
+
+        ttk.Label(
+            container,
+            text="Choose a provider, action, and the required fields. Results appear below and can be copied.",
+        ).pack(fill="x", pady=(0, 10))
 
         controls = ttk.Frame(container)
         controls.pack(fill="x")
@@ -79,8 +93,11 @@ class FileUploaderGui:
 
         self.json_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(controls, text="JSON output", variable=self.json_var).grid(row=5, column=1, sticky="w", padx=6)
-        ttk.Button(controls, text="Run", command=self._run_action).grid(row=5, column=2, sticky="ew", padx=6, pady=8)
+        ttk.Button(controls, text="Run action", command=self._run_action).grid(row=5, column=2, sticky="ew", padx=6, pady=8)
         ttk.Button(controls, text="Copy result", command=self._copy_result).grid(row=5, column=3, sticky="ew", padx=6, pady=8)
+
+        self.hint_var = tk.StringVar(value="Upload: choose a file. Download: enter URL. Info: enter file id.")
+        ttk.Label(controls, textvariable=self.hint_var).grid(row=6, column=0, columnspan=4, sticky="w", pady=(2, 0))
 
         controls.columnconfigure(1, weight=1)
         controls.columnconfigure(3, weight=1)
@@ -112,6 +129,7 @@ class FileUploaderGui:
     def _run_action(self):
         state = self._state()
         try:
+            validate_state(state)
             if state.action == "upload":
                 result = self.core.upload(state.service, state.path, **build_options(state))
             elif state.action == "download":
