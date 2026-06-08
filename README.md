@@ -480,6 +480,7 @@ python3 bayfiles.py
 
 **Binary File**
 
+```shell
 ./bayfiles
 ```
 
