@@ -1,603 +1,167 @@
-<!--meta http-equiv="refresh" content="0; URL=/index"-->
 # FileUploader
 
-Automate Anonymous File Uploads and Downloads
+Unified Python tooling for uploading files to multiple file-hosting providers.
 
-<details open>
-<summary><h2>Overview</h2></summary>
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-active-success.svg)](#supported-providers)
 
-FileUploader is a Python script that simplifies the process of uploading files to various file-hosting services, including AnonFilesNew, Anonfiles, Bayfiles (Deprecated), and GoFile. This script streamlines the file upload process and provides you with direct download links, making it convenient for sharing files.
+FileUploader provides a shared provider layer plus three user interfaces:
 
-**Note: Anonfiles and Bayfiles are Deprecated. Please consider using the GoFile option for a more reliable service.**
+- **CLI** for automation and scripts: `python -m fileuploader`
+- **GUI** for desktop users: `python -m fileuploader_gui`
+- **TUI** for guided terminal use: `python -m fileuploader_tui`
 
-</details>
+The current provider set includes GoFile, AnonFilesNew, JSONBin, AnonFiles, and BayFiles. Deprecated providers remain available for compatibility, but upstream APIs may be unreliable.
 
-<details open>
-<summary><h2>Usage</h2></summary>
+## Features
 
-<details>
-<summary><h4>FileUploader</h4></summary>
-All in One file uploaders at one.
+| Feature | Description |
+| --- | --- |
+| Unified provider core | Normalized provider metadata, upload results, and errors across services. |
+| Multiple interfaces | CLI, Tkinter GUI, and Rich TUI use the same core behavior. |
+| API key support | Pass keys directly or through environment variables. |
+| Encryption support | GoFile legacy workflow supports local AES-GCM encrypt/decrypt before and after transfer. |
+| Clipboard support | Copy processed output from supported workflows. |
+| Testable design | Provider and UI tests use mocks and avoid network access. |
 
-<details>
-<summary>Windows</summary>
-
-##### Installation
-
-You can install executing fileuplaoder_setup.exe and follow the steps.
-
-<details>
-<summary>Usage</summary>
-
-**Python File**
+## Installation
 
 ```shell
-python3 fileUploader.py
+git clone https://github.com/j0rd1s3rr4n0/FileUploader.git
+cd FileUploader
+python -m pip install -r requirements.txt
 ```
 
-**Exe File**
+## Quick Start
+
+List all providers:
 
 ```shell
-start fileUploader.exe
+python -m fileuploader services
 ```
 
-**Right Click to File**
-![Adjuntar Imagen](imagen de asdasdadas en contexto de menu de archivo)
-
-</details>
-
-</details>
-
-<details>
-<summary>Linux</summary>
-
-##### Installation
-
-You can install executing fileuplaoder_setup.sh.
-
-<details>
-<summary>Permissions</summary>
-
-**Python File**
+Upload a file with GoFile and print JSON:
 
 ```shell
-chmod +x fileUploader.py
+python -m fileuploader upload --service gofile path/to/file.txt --json
 ```
 
-**Binary File**
+Upload with AnonFilesNew using an API key:
 
 ```shell
-chmod +x  fileUploader
+python -m fileuploader upload --service anonfilesnew path/to/file.txt --api-key YOUR_API_KEY --json
 ```
 
-</details>
-
-<details>
-<summary>Usage</summary>
-
-**Python File**
+Use an API key from an environment variable:
 
 ```shell
-python3 fileUploader.py
+set ANONFILESNEW_API_KEY=YOUR_API_KEY
+python -m fileuploader upload --service anonfilesnew path/to/file.txt --api-key-env ANONFILESNEW_API_KEY
 ```
 
-**Binary File**
+Launch the desktop GUI:
 
 ```shell
-./fileUploader
+python -m fileuploader_gui
 ```
 
-</details>
-
-</details>
-</details>
-
-<details open>
-  <summary><h4>GoFile</h4></summary>
-
-GoFile.io File Uploader and Downloader
-
-<detailsopen>
-<summary>Windows</summary>
-
-##### Installation
-
-You can install executing gofile_setup.exe and follow the steps.
-
-<detailsopen>
-<summary>Usage</summary>
-<p>Run the program from the command line with the following options:</p>
-
-  <h3>Options:</h3>
-  <ul>
-    <li><code>-v</code>, <code>--verbose</code>: Enable verbose mode to display detailed information during execution.</li>
-    <li><code>-d, --download-url &lt;url&gt;</code>: Download a file by providing the URL.</li>
-    <li><code>-s, --download &lt;server&gt; &lt;fileId&gt; &lt;fileName&gt;</code>: Download a file by specifying the server, fileId, and fileName.</li>
-    <li><code>-u, --upload &lt;filepath&gt;</code>: Upload a file from a local path.</li>
-    <li><code>--json</code>: Return data in JSON format.</li>
-    <li><code>--xml</code>: Return data in XML format.</li>
-    <li><code>--plaintext</code>: Return data in plain text format.</li>
-    <li><code>-o, --output &lt;output-file&gt;</code>: Save the processed data to a file with the specified name.</li>
-    <li><code>--copy</code>: Copy the processed output to the clipboard.</li>
-    <li><code>--encrypt --password &lt;password&gt;</code>: Encrypt a file before uploading it.</li>
-    <li><code>--decrypt-file &lt;file&gt; --password &lt;password&gt;</code>: Decrypt a previously downloaded encrypted file.</li>
-  </ul>
-<h3>Examples:</h3>
-  
-Upload a file:
-<code>python GoFile/main.py -u file.txt</code>
-
-Upload a file and copy the result:
-<code>python GoFile/main.py -u file.txt --copy</code>
-
-Encrypt before upload:
-<code>python GoFile/main.py -u file.txt --encrypt --password "your-password"</code>
-
-Decrypt after download:
-<code>python GoFile/main.py --decrypt-file file.txt.enc --password "your-password" --decrypt-output file.txt</code>
-
-Download a file by URL:
-<code>python GoFile/main.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
-
-Download a file by server, fileId, and fileName:
-<code>python GoFile/main.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
-  <h2>Output Format</h2>
-  <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
-
-**XML**  
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<uploadedFile>
-  <status>ok</status>
-  <data>
-    <guestToken>uT0xLP89WVxbjMQVM1iDh5nC5b0ANORa</guestToken>
-    <downloadPage>https://gofile.io/d/5Zisuc</downloadPage>
-    <c0de>5Zisuc</c0de>
-    <parentFolder>10ea022d-a43a-4faf-bcae-2889c7a48e8a</parentFolder>
-    <fileId>fcd000f4-73d1-4966-8c56-20496efd150a</fileId>
-    <fileName>text.txt</fileName>
-    <md5>89da2808465ff4b8a18e192ba873c458</md5>
-    <server>store11</server>
-  </data>
-</uploadedFile>
-```
-
-**JSON***
-```json
-{
-    "status": "ok",
-    "data": {
-        "guestToken": "UJlzsi3EdfdUmr5SlimWPKZn7x8ifJM5",
-        "downloadPage": "https://gofile.io/d/BPWAu8",
-        "code": "BPWAu8",
-        "parentFolder": "ab6f7927-5c19-4ab9-a83a-e4ae3db095e2",
-        "fileId": "6cc4e899-92bc-4b3a-af13-442254b9c105",
-        "fileName": "text.txt",
-        "md5": "89da2808465ff4b8a18e192ba873c458",
-        "server": "store8"
-    }
-}
-```
-**PLAINTEXT**
-```css
-status          : ok
-data :
-    guestToken      : OUWgISULaTNl42Tr5tc8UIiI1Zl8iwY8
-    downloadPage    : https://gofile.io/d/TEza0q
-    code            : TEza0q
-    parentFolder    : a1d87e71-f2c0-43e2-974d-a24e8d587bc6
-    fileId          : 0ec70f4d-4ae6-4449-8674-91af5909fb42
-    fileName        : text.txt
-    md5             : 89da2808465ff4b8a18e192ba873c458
-    server          : store8
-```
-
-**Right Click to File**
-![Adjuntar Imagen](imagen de asdasdadas en contexto de menu de archivo)
-
-</details>
-
-</details>
-
-<details open>
-<summary>Linux</summary>
-
-##### Installation
-
-You can install executing gofile_setup.sh.
-
-<details open>
-<summary>Permissions</summary>
-
-**Python File**
+Launch the terminal UI:
 
 ```shell
-chmod +x goFile.py
+python -m fileuploader_tui
 ```
 
-**Binary File**
+## CLI Reference
 
 ```shell
-chmod +x  goFile
+python -m fileuploader services [--json] [--active-only]
+python -m fileuploader upload PATH --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json] [--plaintext] [--copy] [--verbose]
+python -m fileuploader download --service SERVICE [--url URL] [--server SERVER --file-id FILE_ID --filename NAME] [--json]
+python -m fileuploader info FILE_ID --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json]
 ```
 
-</details>
+See [docs/interfaces.md](docs/interfaces.md) for the interface design notes and framework comparison.
 
-<details open>
-<summary>Usage</summary>
+## Supported Providers
 
-<summary>Usage</summary>
-<p>Run the program from the command line with the following options:</p>
+| Provider | Service name | Upload | Download | Info | API key | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| GoFile | `gofile` | Yes | Yes | No | No | Active |
+| AnonFilesNew | `anonfilesnew` | Yes | No | Yes | Yes | Active |
+| JSONBin | `jsonbin` | Yes | No | No | Yes | Active |
+| AnonFiles | `anonfiles` | Yes | No | No | No | Deprecated |
+| BayFiles | `bayfiles` | Yes | No | No | No | Deprecated |
 
- <h3>Options:</h3>
-  <ul>
-    <li><code>-v</code>, <code>--verbose</code>: Enable verbose mode to display detailed information during execution.</li>
-    <li><code>-d, --download-url &lt;url&gt;</code>: Download a file by providing the URL.</li>
-    <li><code>-s, --download &lt;server&gt; &lt;fileId&gt; &lt;fileName&gt;</code>: Download a file by specifying the server, fileId, and fileName.</li>
-    <li><code>-u, --upload &lt;filepath&gt;</code>: Upload a file from a local path.</li>
-    <li><code>--json</code>: Return data in JSON format.</li>
-    <li><code>--xml</code>: Return data in XML format.</li>
-    <li><code>--plaintext</code>: Return data in plain text format.</li>
-    <li><code>-o, --output &lt;output-file&gt;</code>: Save the processed data to a file with the specified name.</li>
-    <li><code>--copy</code>: Copy the processed output to the clipboard.</li>
-    <li><code>--encrypt --password &lt;password&gt;</code>: Encrypt a file before uploading it.</li>
-    <li><code>--decrypt-file &lt;file&gt; --password &lt;password&gt;</code>: Decrypt a previously downloaded encrypted file.</li>
-  </ul>
-<h3>Examples:</h3>
-  
-Upload a file:
-<code>python3 GoFile/main.py -u file.txt</code>
+## Provider-Specific Notes
 
-Upload a file and copy the result:
-<code>python3 GoFile/main.py -u file.txt --copy</code>
+### GoFile
 
-Encrypt before upload:
-<code>python3 GoFile/main.py -u file.txt --encrypt --password "your-password"</code>
-
-Decrypt after download:
-<code>python3 GoFile/main.py --decrypt-file file.txt.enc --password "your-password" --decrypt-output file.txt</code>
-
-Download a file by URL:
-<code>python3 GoFile/main.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
-
-Download a file by server, fileId, and fileName:
-<code>python3 GoFile/main.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
-  <h2>Output Format</h2>
-  <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
-
-**XML**  
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<uploadedFile>
-  <status>ok</status>
-  <data>
-    <guestToken>uT0xLP89WVxbjMQVM1iDh5nC5b0ANORa</guestToken>
-    <downloadPage>https://gofile.io/d/5Zisuc</downloadPage>
-    <c0de>5Zisuc</c0de>
-    <parentFolder>10ea022d-a43a-4faf-bcae-2889c7a48e8a</parentFolder>
-    <fileId>fcd000f4-73d1-4966-8c56-20496efd150a</fileId>
-    <fileName>text.txt</fileName>
-    <md5>89da2808465ff4b8a18e192ba873c458</md5>
-    <server>store11</server>
-  </data>
-</uploadedFile>
-```
-
-**JSON***
-```json
-{
-    "status": "ok",
-    "data": {
-        "guestToken": "UJlzsi3EdfdUmr5SlimWPKZn7x8ifJM5",
-        "downloadPage": "https://gofile.io/d/BPWAu8",
-        "code": "BPWAu8",
-        "parentFolder": "ab6f7927-5c19-4ab9-a83a-e4ae3db095e2",
-        "fileId": "6cc4e899-92bc-4b3a-af13-442254b9c105",
-        "fileName": "text.txt",
-        "md5": "89da2808465ff4b8a18e192ba873c458",
-        "server": "store8"
-    }
-}
-```
-**PLAINTEXT**
-```css
-status          : ok
-data :
-    guestToken      : OUWgISULaTNl42Tr5tc8UIiI1Zl8iwY8
-    downloadPage    : https://gofile.io/d/TEza0q
-    code            : TEza0q
-    parentFolder    : a1d87e71-f2c0-43e2-974d-a24e8d587bc6
-    fileId          : 0ec70f4d-4ae6-4449-8674-91af5909fb42
-    fileName        : text.txt
-    md5             : 89da2808465ff4b8a18e192ba873c458
-    server          : store8
-```
-</details>
-
-</details>
-</details>
-
-<details>
-  <summary><h4>AnonFilesNew</h4></summary>
-
-AnonFilesNew file uploader.
-
-The AnonFilesNew API requires an API key. Pass it with `--api-key` or set the `ANONFILESNEW_API_KEY` environment variable.
-
-<details>
-<summary>Windows</summary>
-
-##### Usage
-
-**Python File**
+GoFile supports upload and download through the unified CLI. The legacy GoFile entrypoint also supports local encryption, local decryption, output formatting, and clipboard copying:
 
 ```shell
-python AnonFilesNew.com/anonfilesnew_win.py
+python GoFile/main.py -u path/to/file.txt --encrypt --password "your-password"
+python GoFile/main.py --decrypt-file file.txt.enc --password "your-password" --decrypt-output file.txt
 ```
 
-**With a file path**
+### AnonFilesNew
+
+AnonFilesNew requires an API key for account uploads. Use `--api-key` or `--api-key-env ANONFILESNEW_API_KEY`.
+
+Legacy entrypoint:
 
 ```shell
-python AnonFilesNew.com/anonfilesnew_win.py path/to/file.txt
+python AnonFilesNew.com/anonfilesnew.py path/to/file.txt --api-key YOUR_API_KEY --json
 ```
 
-**With an API key**
+### JSONBin
 
-```shell
-python AnonFilesNew.com/anonfilesnew_win.py path/to/file.txt --api-key YOUR_API_KEY
-```
-
-</details>
-
-<details>
-<summary>Linux</summary>
-
-##### Usage
-
-**Python File**
-
-```shell
-python3 AnonFilesNew.com/anonfilesnew.py
-```
-
-**With a file path**
-
-```shell
-python3 AnonFilesNew.com/anonfilesnew.py path/to/file.txt
-```
-
-**With an API key**
-
-```shell
-python3 AnonFilesNew.com/anonfilesnew.py path/to/file.txt --api-key YOUR_API_KEY
-```
-
-**JSON output**
-
-```shell
-python3 AnonFilesNew.com/anonfilesnew.py path/to/file.txt --api-key YOUR_API_KEY --json
-```
-
-</details>
-</details>
-
-<details>
-  <summary><h4>JSONBin</h4></summary>
-
-JSONBin.io chunk uploader for splitting files into JSON records.
-
-The JSONBin API requires an API key. Pass one or more keys with `--api-key`, or set the `JSONBIN_API_KEYS` environment variable with comma-separated keys.
-
-<details>
-<summary>Usage</summary>
-
-**Upload a file in chunks**
+JSONBin stores file content as JSON records and requires an API key. The provider also has a chunk uploader for larger workflows:
 
 ```shell
 python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --api-key YOUR_API_KEY --manifest upload-manifest.json
 ```
 
-**Use multiple API keys**
+Use multiple JSONBin keys by repeating `--api-key` or setting `JSONBIN_API_KEYS` with comma-separated values.
+
+## Development
+
+Run the full test suite:
 
 ```shell
-python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --api-key KEY_1 --api-key KEY_2 --chunk-size 500KB
+python -m unittest discover -s tests
 ```
 
-**Configure retries**
+Compile the main modules:
 
 ```shell
-python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --api-key KEY_1 --retry-attempts 3 --retry-delay 1
+python -m py_compile fileuploader/*.py fileuploader_gui.py fileuploader_tui.py
 ```
 
-**Use an environment variable**
+Expected local smoke checks:
 
 ```shell
-set JSONBIN_API_KEYS=KEY_1,KEY_2
-python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --manifest upload-manifest.json
+python -m fileuploader services --json
+python -c "from fileuploader_tui import service_table; print(len(service_table().rows))"
+python -c "import fileuploader_gui; print(fileuploader_gui.default_state())"
 ```
 
-Each uploaded chunk includes metadata such as the original filename, logical upload id, part index, total part count, chunk hash, full file hash, upload timestamp, and base64-encoded content.
+## Project Layout
 
-</details>
-</details>
-
-<details>
-  <summary><h4>AnonFiles (**DEPRECATED**)</h4></summary>
-
-Description of AnonFiles
-
-<details>
-<summary>Windows</summary>
-
-##### Installation
-
-You can install executing anonfiles_setup.exe and follow the steps.
-
-<details>
-<summary>Usage</summary>
-
-**Python File**
-
-```shell
-python3 anonFiles.py
+```text
+fileuploader/       Shared provider core, registry, formatters, and CLI
+fileuploader_gui.py Tkinter desktop interface
+fileuploader_tui.py Rich terminal interface
+GoFile/             Legacy GoFile scripts and encryption helpers
+AnonFilesNew.com/   Legacy AnonFilesNew scripts
+JSONBin.com/        JSONBin chunk uploader
+tests/              Unit and smoke tests
+docs/               Interface documentation
 ```
-
-**Exe File**
-
-```shell
-start anonFiles.exe
-```
-
-**Right Click to File**
-![Adjuntar Imagen](imagen de asdasdadas in the context of the file menu)
-
-</details>
-
-</details>
-
-<details>
-<summary>Linux</summary>
-
-##### Installation
-
-You can install executing anonfiles_setup.sh.
-
-<details>
-<summary>Permissions</summary>
-
-**Python File**
-
-```shell
-chmod +x anonFiles.py
-```
-
-**Binary File**
-
-```shell
-chmod +x  anonFiles
-```
-
-</details>
-
-<details>
-<summary>Usage</summary>
-
-**Python File**
-
-```shell
-python3 anonFiles.py
-```
-
-**Binary File**
-
-```shell
-./anonFiles
-```
-
-</details>
-
-</details>
-</details>
-
-<details>
-  <summary><h4>BayFiles (**DEPRECATED**)</h4></summary>
-
-Description of BayFiles
-
-<details>
-<summary>Windows</summary>
-
-##### Installation
-
-You can install executing bayfiles_setup.exe and follow the steps.
-
-<details>
-<summary>Usage</summary>
-
-**Python File**
-
-```shell
-python3 bayfiles.py
-```
-
-**Exe File**
-
-```shell
-start bayfiles.exe
-```
-
-**Right Click to File**
-![Adjuntar Imagen](imagen de asdasdadas in the context of the file menu)
-
-</details>
-
-</details>
-
-<details>
-<summary>Linux</summary>
-
-##### Installation
-
-You can install executing bayfiles_setup.sh.
-
-<details>
-<summary>Permissions</summary>
-
-**Python File**
-
-```shell
-chmod +x bayfiles.py
-```
-
-**Binary File**
-
-```shell
-chmod +x  bayfiles
-```
-
-</details>
-
-<details>
-<summary>Usage</summary>
-
-**Python File**
-
-```shell
-python3 bayfiles.py
-```
-
-**Binary File**
-
-```shell
-./bayfiles
-```
-
-</details>
-</details>
-</details>
-</details>
-
-## Technologies
-
-<div style="background-color:#74797e;margin:0;padding:0;vertical-align:middle;text-align:center;padding:10pt;border-top:5pt dashed #0d1117;border-bottom:5pt dashed #0d1117;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Bayfiles_logo.png" alt="BayFiles" style="padding:10pt;height:50pt;filter:drop-shadow(0.4pt 1pt 1pt black);" height="50pt" title="BayFiles">
-  <img src="https://static.wikia.nocookie.net/logopedia/images/5/5a/Logogoloo.png" alt="AnonFiles" style="padding:10pt;height:50pt;filter:drop-shadow(1pt 1pt 1pt black);" height="50pt" title="AnonFiles">
-  <img src="https://gofile.io/dist/img/logo-big.png" alt="GoFiles" style="padding:10pt;height:40pt;filter:drop-shadow(1pt 1pt 1pt black);" height="50pt" title="goFile">
-</div>
-
-Enjoy easy and convenient file uploads with FileUploader!
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-| **Service** 	| **What we need** 	| **URL** 	| **Active** 	|
-|-------------	|------------------	|---------	|------------	|
-|**JSONBin**|API KEYs|[Fill te form](https://forms.gle/2J96dZAEYDDJaEcp9)|**YES**|
-|*TEST*|API KEYs|[Fill te form](https://forms.gle/)|**No**|
-|*TEST*|API KEYs|[Fill te form](https://forms.gle/)|**No**|
+Pull requests are welcome. For larger changes, open an issue first with the intended behavior, provider impact, and validation plan.
 
 ## License
 

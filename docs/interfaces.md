@@ -1,0 +1,48 @@
+# FileUploader Interfaces
+
+FileUploader now exposes one shared provider core through three user interfaces:
+
+- `python -m fileuploader` for command-line automation.
+- `python -m fileuploader_gui` for a lightweight desktop workflow.
+- `python -m fileuploader_tui` for terminal-guided interactive use.
+
+## CLI
+
+The primary CLI is built with Typer:
+
+```shell
+python -m fileuploader services
+python -m fileuploader upload --service gofile path/to/file.txt --json
+python -m fileuploader info --service anonfilesnew FILE_ID --api-key YOUR_API_KEY
+```
+
+Typer is used because it provides a modern command surface while building on Click internally. Click is therefore covered as the underlying command framework. The older argparse scripts remain available as legacy provider-specific entrypoints, but new automation should use `python -m fileuploader`.
+
+## GUI
+
+The GUI uses Tkinter because it ships with Python on Windows and does not require a heavy desktop dependency.
+
+```shell
+python -m fileuploader_gui
+```
+
+Use it when users prefer selecting the provider, file, action, and output format from a desktop window.
+
+## TUI
+
+The TUI uses Rich for readable terminal tables, prompts, and result panels.
+
+```shell
+python -m fileuploader_tui
+```
+
+Use it when users want an interactive terminal flow without remembering command flags.
+
+## Validation
+
+Run the full local validation suite with:
+
+```shell
+python -m unittest discover -s tests
+python -m py_compile fileuploader/*.py fileuploader_gui.py fileuploader_tui.py
+```
