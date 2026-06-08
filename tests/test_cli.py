@@ -1,0 +1,62 @@
+import json
+import unittest
+from unittest.mock import patch
+
+from typer.testing import CliRunner
+
+from fileuploader.cli import app
+from fileuploader.models import ProviderError, ProviderInfo, UploadResult
+
+
+class FakeCore:
+    def services(self, include_deprecated=True):
+        return [
+            ProviderInfo(name="gofile", display_name="GoFile"),
+            ProviderInfo(name="bayfiles", display_name="BayFiles", deprecated=True),
+        ]
+
+    def upload(self, service, path, **options):
+        if service == "missing":
+            raise ProviderError(service, "Unknown provider")
+        return UploadResult(provider=service, status=True, url="https://example.test/file", file_id="file-1")
+
+    def download(self, service, **options):
+        return {"provider": service, "download": options}
+
+    def info(self, service, file_id, **options):
+        return {"provider": service, "file_id": file_id}
+
+
+class CliTests(unittest.TestCase):
+    def setUp(self):
+        self.runner = CliRunner()
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_services_lists_all_providers_as_json(self, _core):
+        result = self.runner.invoke(app, ["services", "--json"])
+
+        self.assertEqual(result.exit_code, 0, result.output)
+        payload = json.loads(result.output)
+        self.assertEqual({"gofile", "bayfiles"}, {item["name"] for item in payload})
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_upload_outputs_json(self, _core):
+        result = self.runner.invoke(app, ["upload", "sample.txt", "--service", "gofile", "--json"])
+
+        self.assertEqual(result.exit_code, 0, result.output)
+        payload = json.loads(result.output)
+        self.assertEqual(payload["provider"], "gofile")
+        self.assertEqual(payload["url"], "https://example.test/file")
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_upload_invalid_provider_returns_error(self, _core):
+        result = self.runner.invoke(app, ["upload", "sample.txt", "--service", "missing", "--json"])
+
+        self.assertEqual(result.exit_code, 1)
+        payload = json.loads(result.output)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["provider"], "missing")
+
+
+if __name__ == "__main__":
+    unittest.main()
