@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
-from fileuploader.cli import app
+from fileuploader.cli import app, build_guided_download, build_guided_info, build_guided_upload
 from fileuploader.models import ProviderError, ProviderInfo, UploadResult
 
 
@@ -65,6 +65,30 @@ class CliTests(unittest.TestCase):
         payload = json.loads(result.output)
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["error"]["provider"], "missing")
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_guided_upload_flow(self, _core):
+        result = self.runner.invoke(
+            app,
+            ["guided"],
+            input="gofile\nupload\nn\nsample.txt\n\n\n",
+        )
+
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("https://example.test/file", result.output)
+
+    def test_guided_helpers_validate_missing_values(self):
+        with self.assertRaises(ProviderError) as error:
+            build_guided_upload(FakeCore(), "gofile", "", None, None)
+        self.assertEqual(error.exception.code, "path_required")
+
+        with self.assertRaises(ProviderError) as error:
+            build_guided_download(FakeCore(), "gofile", "")
+        self.assertEqual(error.exception.code, "url_required")
+
+        with self.assertRaises(ProviderError) as error:
+            build_guided_info(FakeCore(), "gofile", "", None, None)
+        self.assertEqual(error.exception.code, "file_id_required")
 
 
 if __name__ == "__main__":
