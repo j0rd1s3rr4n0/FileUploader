@@ -1,0 +1,230 @@
+import base64
+import hashlib
+import os
+import time
+import uuid
+from pathlib import Path
+
+import requests
+
+from .models import ProviderError, ProviderInfo, UploadResult
+
+
+class BaseProvider:
+    info = ProviderInfo(name="base", display_name="Base")
+
+    def __init__(self, http_client=None):
+        self.http = http_client or requests
+
+    def upload(self, filepath, **options):
+        raise ProviderError(self.info.name, "Upload is not supported by this provider")
+
+    def download(self, **options):
+        raise ProviderError(self.info.name, "Download is not supported by this provider")
+
+    def info_file(self, file_id, **options):
+        raise ProviderError(self.info.name, "File info is not supported by this provider")
+
+    def _ensure_file(self, filepath):
+        path = Path(filepath)
+        if not path.is_file():
+            raise ProviderError(self.info.name, f"File not found: {filepath}", code="file_not_found")
+        return path
+
+    def _post_file(self, url, filepath, **kwargs):
+        path = self._ensure_file(filepath)
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post(url, files={"file": (path.name, file_handle)}, **kwargs)
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
+
+    def _json_response(self, response):
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise ProviderError(self.info.name, "Provider returned invalid JSON", code="invalid_json") from exc
+        if getattr(response, "status_code", 200) >= 400:
+            message = payload.get("message") or payload.get("error", {}).get("message") or response.text
+            raise ProviderError(self.info.name, message, code="http_error")
+        return payload
+
+
+class GoFileProvider(BaseProvider):
+    info = ProviderInfo(
+        name="gofile",
+        display_name="GoFile",
+        supports_download=True,
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://upload.gofile.io/uploadfile", filepath)
+        if payload.get("status") not in ("ok", True):
+            raise ProviderError(self.info.name, str(payload), code="upload_failed")
+        data = payload.get("data", {})
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=data.get("downloadPage"),
+            file_id=data.get("fileId") or data.get("code"),
+            metadata=data,
+            raw=payload,
+        )
+
+    def download(self, **options):
+        url = options.get("url")
+        if not url:
+            server = options.get("server")
+            file_id = options.get("file_id")
+            filename = options.get("filename")
+            if not all([server, file_id, filename]):
+                raise ProviderError(self.info.name, "Provide url or server, file_id, and filename")
+            url = f"https://{server}.gofile.io/download/{file_id}/{filename}"
+        try:
+            response = self.http.get(url)
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
+
+
+class AnonFilesNewProvider(BaseProvider):
+    info = ProviderInfo(
+        name="anonfilesnew",
+        display_name="AnonFilesNew",
+        supports_info=True,
+        requires_api_key=True,
+    )
+
+    def upload(self, filepath, **options):
+        api_key = options.get("api_key") or os.environ.get(options.get("api_key_env") or "ANONFILESNEW_API_KEY")
+        url = "https://api.anonfilesnew.com/upload"
+        if api_key:
+            url = f"{url}?key={api_key}"
+        payload = self._post_file(url, filepath)
+        if not payload.get("status"):
+            error = payload.get("error", {})
+            raise ProviderError(self.info.name, error.get("message", "Upload failed"), code=error.get("type"))
+        file_data = payload.get("data", {}).get("file", {})
+        url_data = file_data.get("url", {})
+        metadata = file_data.get("metadata", {})
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url_data.get("full"),
+            short_url=url_data.get("short"),
+            file_id=metadata.get("id"),
+            metadata=metadata,
+            raw=payload,
+        )
+
+    def info_file(self, file_id, **options):
+        try:
+            response = self.http.get(f"https://api.anonfilesnew.com/v3/file/{file_id}/info")
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
+
+
+class JsonBinProvider(BaseProvider):
+    info = ProviderInfo(
+        name="jsonbin",
+        display_name="JSONBin",
+        supports_download=False,
+        supports_info=False,
+        requires_api_key=True,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        api_key = options.get("api_key") or os.environ.get(options.get("api_key_env") or "JSONBIN_API_KEYS")
+        if api_key and "," in api_key:
+            api_key = api_key.split(",", 1)[0].strip()
+        if not api_key:
+            raise ProviderError(self.info.name, "Provide a JSONBin API key", code="api_key_required")
+
+        data = path.read_bytes()
+        record = {
+            "upload_id": str(uuid.uuid4()),
+            "original_filename": path.name,
+            "file_size": len(data),
+            "file_sha256": hashlib.sha256(data).hexdigest(),
+            "uploaded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "content_encoding": "base64",
+            "content": base64.b64encode(data).decode("ascii"),
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "X-Master-Key": api_key,
+            "X-Bin-Private": "true",
+            "X-Bin-Name": path.name[:128],
+        }
+        try:
+            response = self.http.post("https://api.jsonbin.io/v3/b", headers=headers, json=record, timeout=60)
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        payload = self._json_response(response)
+        metadata = payload.get("metadata", {})
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=metadata.get("id"),
+            file_id=metadata.get("id"),
+            metadata=metadata,
+            raw=payload,
+        )
+
+
+class AnonFilesProvider(AnonFilesNewProvider):
+    info = ProviderInfo(
+        name="anonfiles",
+        display_name="AnonFiles",
+        supports_info=False,
+        deprecated=True,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://api.anonfiles.com/upload", filepath)
+        if not payload.get("status"):
+            error = payload.get("error", {})
+            raise ProviderError(self.info.name, error.get("message", "Upload failed"), code=error.get("type"))
+        file_data = payload.get("data", {}).get("file", {})
+        url_data = file_data.get("url", {})
+        metadata = file_data.get("metadata", {})
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url_data.get("full"),
+            short_url=url_data.get("short"),
+            file_id=metadata.get("id"),
+            metadata=metadata,
+            raw=payload,
+        )
+
+
+class BayFilesProvider(AnonFilesProvider):
+    info = ProviderInfo(
+        name="bayfiles",
+        display_name="BayFiles",
+        supports_info=False,
+        deprecated=True,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://api.bayfiles.com/upload", filepath)
+        if not payload.get("status"):
+            error = payload.get("error", {})
+            raise ProviderError(self.info.name, error.get("message", "Upload failed"), code=error.get("type"))
+        file_data = payload.get("data", {}).get("file", {})
+        url_data = file_data.get("url", {})
+        metadata = file_data.get("metadata", {})
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url_data.get("full"),
+            short_url=url_data.get("short"),
+            file_id=metadata.get("id"),
+            metadata=metadata,
+            raw=payload,
+        )
