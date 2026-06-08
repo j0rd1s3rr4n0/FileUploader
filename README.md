@@ -6,7 +6,7 @@ Automate Anonymous File Uploads and Downloads
 <details open>
 <summary><h2>Overview</h2></summary>
 
-FileUploader is a Python script that simplifies the process of uploading files to various file-hosting services, including Anonfiles, Bayfiles (Deprecated), and GoFile. This script streamlines the file upload process and provides you with direct download links, making it convenient for sharing files.
+FileUploader is a Python script that simplifies the process of uploading files to various file-hosting services, including AnonFilesNew, Anonfiles, Bayfiles (Deprecated), and GoFile. This script streamlines the file upload process and provides you with direct download links, making it convenient for sharing files.
 
 **Note: Anonfiles and Bayfiles are Deprecated. Please consider using the GoFile option for a more reliable service.**
 
@@ -118,17 +118,29 @@ You can install executing gofile_setup.exe and follow the steps.
     <li><code>--xml</code>: Return data in XML format.</li>
     <li><code>--plaintext</code>: Return data in plain text format.</li>
     <li><code>-o, --output &lt;output-file&gt;</code>: Save the processed data to a file with the specified name.</li>
+    <li><code>--copy</code>: Copy the processed output to the clipboard.</li>
+    <li><code>--encrypt --password &lt;password&gt;</code>: Encrypt a file before uploading it.</li>
+    <li><code>--decrypt-file &lt;file&gt; --password &lt;password&gt;</code>: Decrypt a previously downloaded encrypted file.</li>
   </ul>
 <h3>Examples:</h3>
   
 Upload a file:
-<code>python gofile.py -u file.txt</code>
+<code>python GoFile/main.py -u file.txt</code>
+
+Upload a file and copy the result:
+<code>python GoFile/main.py -u file.txt --copy</code>
+
+Encrypt before upload:
+<code>python GoFile/main.py -u file.txt --encrypt --password "your-password"</code>
+
+Decrypt after download:
+<code>python GoFile/main.py --decrypt-file file.txt.enc --password "your-password" --decrypt-output file.txt</code>
 
 Download a file by URL:
-<code>python gofile.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
+<code>python GoFile/main.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
 
 Download a file by server, fileId, and fileName:
-<code>python gofile.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
+<code>python GoFile/main.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
   <h2>Output Format</h2>
   <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
 
@@ -227,17 +239,29 @@ chmod +x  goFile
     <li><code>--xml</code>: Return data in XML format.</li>
     <li><code>--plaintext</code>: Return data in plain text format.</li>
     <li><code>-o, --output &lt;output-file&gt;</code>: Save the processed data to a file with the specified name.</li>
+    <li><code>--copy</code>: Copy the processed output to the clipboard.</li>
+    <li><code>--encrypt --password &lt;password&gt;</code>: Encrypt a file before uploading it.</li>
+    <li><code>--decrypt-file &lt;file&gt; --password &lt;password&gt;</code>: Decrypt a previously downloaded encrypted file.</li>
   </ul>
 <h3>Examples:</h3>
   
 Upload a file:
-<code>python gofile.py -u file.txt</code>
+<code>python3 GoFile/main.py -u file.txt</code>
+
+Upload a file and copy the result:
+<code>python3 GoFile/main.py -u file.txt --copy</code>
+
+Encrypt before upload:
+<code>python3 GoFile/main.py -u file.txt --encrypt --password "your-password"</code>
+
+Decrypt after download:
+<code>python3 GoFile/main.py --decrypt-file file.txt.enc --password "your-password" --decrypt-output file.txt</code>
 
 Download a file by URL:
-<code>python gofile.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
+<code>python3 GoFile/main.py -d https://store5.gofile.io/download/fcd000f4-73d1-4966-8c56-20496efd150a/text.txt</code>
 
 Download a file by server, fileId, and fileName:
-<code>python gofile.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
+<code>python3 GoFile/main.py -s store5 fcd000f4-73d1-4966-8c56-20496efd150a file.txt</code>
   <h2>Output Format</h2>
   <p>The program can return data in JSON, XML, or plain text format. If no format is specified, it defaults to plain text format.</p>
 
@@ -289,6 +313,70 @@ data :
     server          : store8
 ```
 </details>
+
+</details>
+</details>
+
+<details>
+  <summary><h4>AnonFilesNew</h4></summary>
+
+AnonFilesNew file uploader.
+
+The AnonFilesNew API requires an API key. Pass it with `--api-key` or set the `ANONFILESNEW_API_KEY` environment variable.
+
+<details>
+<summary>Windows</summary>
+
+##### Usage
+
+**Python File**
+
+```shell
+python AnonFilesNew.com/anonfilesnew_win.py
+```
+
+**With a file path**
+
+```shell
+python AnonFilesNew.com/anonfilesnew_win.py path/to/file.txt
+```
+
+**With an API key**
+
+```shell
+python AnonFilesNew.com/anonfilesnew_win.py path/to/file.txt --api-key YOUR_API_KEY
+```
+
+</details>
+
+<details>
+<summary>Linux</summary>
+
+##### Usage
+
+**Python File**
+
+```shell
+python3 AnonFilesNew.com/anonfilesnew.py
+```
+
+**With a file path**
+
+```shell
+python3 AnonFilesNew.com/anonfilesnew.py path/to/file.txt
+```
+
+**With an API key**
+
+```shell
+python3 AnonFilesNew.com/anonfilesnew.py path/to/file.txt --api-key YOUR_API_KEY
+```
+
+**JSON output**
+
+```shell
+python3 AnonFilesNew.com/anonfilesnew.py path/to/file.txt --api-key YOUR_API_KEY --json
+```
 
 </details>
 </details>

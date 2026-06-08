@@ -1,105 +1,76 @@
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
+import os
+from pathlib import Path
+
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import padding as sym_padding
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
 
 class Encryption:
-    @staticmethod
-    def _pad(data):
-        padder = sym_padding.PKCS7(128).padder()
-        padded_data = padder.update(data)
-        padded_data += padder.finalize()
-        return padded_data
+    MAGIC = b"FUENC1"
+    SALT_SIZE = 16
+    NONCE_SIZE = 12
+    KEY_SIZE = 32
+    ITERATIONS = 390000
 
     @staticmethod
-    def _unpad(padded_data):
-        unpadder = sym_padding.PKCS7(128).unpadder()
-        data = unpadder.update(padded_data)
-        data += unpadder.finalize()
-        return data
+    def _derive_key(password, salt):
+        if not password:
+            raise ValueError("Password is required for encryption and decryption")
 
-    @staticmethod
-    def _derive_key(password, salt=b''):
-        backend = default_backend()
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
-            length=32,
+            length=Encryption.KEY_SIZE,
             salt=salt,
-            iterations=100000,
-            backend=backend
+            iterations=Encryption.ITERATIONS,
         )
-        return kdf.derive(password.encode())
+        return kdf.derive(password.encode("utf-8"))
 
     @staticmethod
-    def generate_rsa_key():
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-            backend=default_backend()
-        )
-        public_key = private_key.public_key()
-        return private_key, public_key
+    def encrypt_bytes(data, password):
+        salt = os.urandom(Encryption.SALT_SIZE)
+        nonce = os.urandom(Encryption.NONCE_SIZE)
+        key = Encryption._derive_key(password, salt)
+        ciphertext = AESGCM(key).encrypt(nonce, data, None)
+        return Encryption.MAGIC + salt + nonce + ciphertext
 
     @staticmethod
-    def serialize_key(key):
-        return key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption()
-        )
+    def decrypt_bytes(data, password):
+        header_size = len(Encryption.MAGIC) + Encryption.SALT_SIZE + Encryption.NONCE_SIZE
+        if len(data) <= header_size or not data.startswith(Encryption.MAGIC):
+            raise ValueError("Invalid encrypted file format")
+
+        offset = len(Encryption.MAGIC)
+        salt = data[offset : offset + Encryption.SALT_SIZE]
+        offset += Encryption.SALT_SIZE
+        nonce = data[offset : offset + Encryption.NONCE_SIZE]
+        ciphertext = data[offset + Encryption.NONCE_SIZE :]
+
+        key = Encryption._derive_key(password, salt)
+        return AESGCM(key).decrypt(nonce, ciphertext, None)
 
     @staticmethod
-    def deserialize_key(serialized_key):
-        return serialization.load_pem_private_key(
-            serialized_key,
-            password=None,
-            backend=default_backend()
-        )
+    def encrypt_file(filepath, password, output_path=None):
+        source = Path(filepath)
+        if not source.is_file():
+            raise FileNotFoundError(f"File not found: {filepath}")
+
+        target = Path(output_path) if output_path else source.with_name(source.name + ".enc")
+        target.write_bytes(Encryption.encrypt_bytes(source.read_bytes(), password))
+        return str(target)
 
     @staticmethod
-    def encrypt_text(text, password, algorithm="AES"):
-        if algorithm == "AES":
-            iv = os.urandom(16)
-            key = Encryption._derive_key(password)
-            cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-            encryptor = cipher.encryptor()
-            padded_data = Encryption._pad(text.encode())
-            encrypted_text = encryptor.update(padded_data) + encryptor.finalize()
-            return encrypted_text, iv
-        elif algorithm == "RSA":
-            private_key, _ = Encryption.generate_rsa_key()
-            ciphertext = private_key.encrypt(
-                text.encode(),
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )
-            return ciphertext, None
+    def decrypt_file(filepath, password, output_path=None):
+        source = Path(filepath)
+        if not source.is_file():
+            raise FileNotFoundError(f"File not found: {filepath}")
+
+        if output_path:
+            target = Path(output_path)
+        elif source.suffix == ".enc":
+            target = source.with_suffix("")
         else:
-            raise ValueError("Unknown encryption algorithm")
+            target = source.with_name(source.name + ".dec")
 
-    @staticmethod
-    def decrypt_text(encrypted_text, iv, password, algorithm="AES"):
-        if algorithm == "AES":
-            key = Encryption._derive_key(password)
-            cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-            decryptor = cipher.decryptor()
-            decrypted_data = decryptor.update(encrypted_text) + decryptor.finalize()
-            return Encryption._unpad(decrypted_data).decode()
-        elif algorithm == "RSA":
-            private_key, _ = Encryption.generate_rsa_key()
-            decrypted_text = private_key.decrypt(
-                encrypted_text,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )
-            return decrypted_text.decode()
-        else:
-            raise ValueError("Unknown decryption algorithm")
+        target.write_bytes(Encryption.decrypt_bytes(source.read_bytes(), password))
+        return str(target)
