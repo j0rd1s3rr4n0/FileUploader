@@ -382,6 +382,46 @@ python3 AnonFilesNew.com/anonfilesnew.py path/to/file.txt --api-key YOUR_API_KEY
 </details>
 
 <details>
+  <summary><h4>JSONBin</h4></summary>
+
+JSONBin.io chunk uploader for splitting files into JSON records.
+
+The JSONBin API requires an API key. Pass one or more keys with `--api-key`, or set the `JSONBIN_API_KEYS` environment variable with comma-separated keys.
+
+<details>
+<summary>Usage</summary>
+
+**Upload a file in chunks**
+
+```shell
+python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --api-key YOUR_API_KEY --manifest upload-manifest.json
+```
+
+**Use multiple API keys**
+
+```shell
+python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --api-key KEY_1 --api-key KEY_2 --chunk-size 500KB
+```
+
+**Configure retries**
+
+```shell
+python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --api-key KEY_1 --retry-attempts 3 --retry-delay 1
+```
+
+**Use an environment variable**
+
+```shell
+set JSONBIN_API_KEYS=KEY_1,KEY_2
+python JSONBin.com/jsonbin_uploader.py upload path/to/file.txt --manifest upload-manifest.json
+```
+
+Each uploaded chunk includes metadata such as the original filename, logical upload id, part index, total part count, chunk hash, full file hash, upload timestamp, and base64-encoded content.
+
+</details>
+</details>
+
+<details>
   <summary><h4>AnonFiles (**DEPRECATED**)</h4></summary>
 
 Description of AnonFiles
