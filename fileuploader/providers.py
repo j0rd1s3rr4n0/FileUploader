@@ -68,7 +68,7 @@ class GoFileProvider(BaseProvider):
             provider=self.info.name,
             status=True,
             url=data.get("downloadPage"),
-            file_id=data.get("fileId") or data.get("code"),
+            file_id=data.get("fileId") or data.get("id") or data.get("code") or data.get("parentFolderCode"),
             metadata=data,
             raw=payload,
         )
