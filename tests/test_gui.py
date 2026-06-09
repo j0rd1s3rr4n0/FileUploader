@@ -9,6 +9,8 @@ from fileuploader_gui import (
     default_service_name,
     default_state,
     deprecated_services,
+    provider_status,
+    provider_summary,
     required_fields_for_state,
     service_names,
     validate_state,
@@ -42,14 +44,28 @@ class GuiSmokeTests(unittest.TestCase):
 
         self.assertEqual(error.exception.code, "path_required")
 
-    def test_active_services_excludes_deprecated_services(self):
+    def test_active_services_excludes_deprecated_and_disabled_services(self):
         services = [
             ProviderInfo(name="gofile", display_name="GoFile"),
             ProviderInfo(name="bayfiles", display_name="BayFiles", deprecated=True),
+            ProviderInfo(name="mega", display_name="MEGA", active=False),
         ]
 
         self.assertEqual(service_names(active_services(services)), ["gofile"])
-        self.assertEqual(service_names(deprecated_services(services)), ["bayfiles"])
+        self.assertEqual(service_names(deprecated_services(services)), ["bayfiles", "mega"])
+
+    def test_provider_status_labels_state(self):
+        self.assertEqual(provider_status(ProviderInfo(name="gofile", display_name="GoFile")), "active")
+        self.assertEqual(provider_status(ProviderInfo(name="bayfiles", display_name="BayFiles", deprecated=True)), "deprecated")
+        self.assertEqual(provider_status(ProviderInfo(name="mega", display_name="MEGA", active=False)), "disabled")
+
+    def test_provider_summary_mentions_capabilities_and_credentials(self):
+        summary = provider_summary(ProviderInfo(name="box", display_name="Box", supports_info=True, requires_api_key=True))
+
+        self.assertIn("Box", summary)
+        self.assertIn("upload", summary)
+        self.assertIn("info", summary)
+        self.assertIn("token required", summary)
 
     def test_default_service_prefers_gofile(self):
         services = [
