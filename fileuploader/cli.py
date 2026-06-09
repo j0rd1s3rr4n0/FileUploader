@@ -34,6 +34,25 @@ def _exit_provider_error(error: ProviderError, json_output: bool):
     raise typer.Exit(code=1)
 
 
+def _service_names(core: FileUploaderCore) -> list[str]:
+    return [service.name for service in core.services(include_deprecated=True)]
+
+
+def build_guided_upload(core: FileUploaderCore, service: str, path: str, api_key: Optional[str], api_key_env: Optional[str]):
+    require_value(service, path, "Provide a file path to upload.", "path_required")
+    return core.upload(service, path, api_key=_resolve_api_key(api_key, api_key_env), api_key_env=api_key_env)
+
+
+def build_guided_download(core: FileUploaderCore, service: str, url: str):
+    require_value(service, url, "Provide a download URL.", "url_required")
+    return core.download(service, url=url)
+
+
+def build_guided_info(core: FileUploaderCore, service: str, file_id: str, api_key: Optional[str], api_key_env: Optional[str]):
+    require_value(service, file_id, "Provide the provider file id.", "file_id_required")
+    return core.info(service, file_id, api_key=_resolve_api_key(api_key, api_key_env), api_key_env=api_key_env)
+
+
 @app.command()
 def services(
     json_output: bool = typer.Option(False, "--json", help="Print JSON output."),
@@ -43,6 +62,46 @@ def services(
     result = FileUploaderCore().services(include_deprecated=include_deprecated)
     services_data = [service.to_dict() for service in result]
     typer.echo(format_output(services_data, json_output=True) if json_output else service_rows(services_data))
+
+
+@app.command()
+def guided():
+    """Run a step-by-step upload, download, or info flow."""
+    core = FileUploaderCore()
+    services_data = [service.to_dict() for service in core.services(include_deprecated=True)]
+    typer.echo("Available providers:")
+    typer.echo(service_rows(services_data))
+
+    service = typer.prompt("Provider", default=services_data[0]["name"])
+    action = typer.prompt("Action", default="upload")
+    api_key = None
+    api_key_env = None
+    json_output = typer.confirm("Print JSON output?", default=False)
+
+    try:
+        if action == "upload":
+            path = typer.prompt("File path to upload")
+            api_key = typer.prompt("API key, leave blank if not needed", default="")
+            api_key_env = typer.prompt("API key environment variable, leave blank if not needed", default="")
+            result = build_guided_upload(core, service, path, api_key or None, api_key_env or None)
+        elif action == "download":
+            url = typer.prompt("Download URL")
+            result = build_guided_download(core, service, url)
+        elif action == "info":
+            file_id = typer.prompt("Provider file ID")
+            api_key = typer.prompt("API key, leave blank if not needed", default="")
+            api_key_env = typer.prompt("API key environment variable, leave blank if not needed", default="")
+            result = build_guided_info(core, service, file_id, api_key or None, api_key_env or None)
+        else:
+            choices = "upload, download, info"
+            raise ProviderError(service, f"Unknown action '{action}'. Choose one of: {choices}", code="unknown_action")
+    except ProviderError as error:
+        _exit_provider_error(error, json_output)
+        return
+
+    if hasattr(result, "to_dict"):
+        result = result.to_dict()
+    _print_result(result, json_output)
 
 
 @app.command()

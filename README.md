@@ -41,6 +41,12 @@ List all providers:
 python -m fileuploader services
 ```
 
+Use the guided CLI when you do not remember the flags:
+
+```shell
+python -m fileuploader guided
+```
+
 Upload a file with GoFile and print JSON:
 
 ```shell
@@ -76,6 +82,7 @@ python -m fileuploader_tui
 
 ```shell
 python -m fileuploader services [--json] [--active-only]
+python -m fileuploader guided
 python -m fileuploader upload PATH --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json] [--plaintext] [--copy] [--verbose]
 python -m fileuploader download --service SERVICE [--url URL] [--server SERVER --file-id FILE_ID --filename NAME] [--json]
 python -m fileuploader info FILE_ID --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json]

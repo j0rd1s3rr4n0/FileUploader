@@ -57,7 +57,7 @@ class ProviderCoreTests(unittest.TestCase):
             "status": "ok",
             "data": {
                 "downloadPage": "https://gofile.io/d/abc",
-                "fileId": "file-1",
+                "id": "file-1",
                 "fileName": "sample.txt",
             },
         }
