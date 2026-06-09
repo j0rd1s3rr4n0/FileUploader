@@ -11,7 +11,7 @@ class FileUploaderCore:
     def services(self, include_deprecated: bool = True) -> list[ProviderInfo]:
         providers: Iterable = self.registry.providers()
         if not include_deprecated:
-            providers = [provider for provider in providers if not provider.info.deprecated]
+            providers = [provider for provider in providers if provider.info.active and not provider.info.deprecated]
         return [provider.info for provider in providers]
 
     def upload(self, service: str, filepath: str, **options):

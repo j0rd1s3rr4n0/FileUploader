@@ -33,11 +33,11 @@ def build_options(state: GuiState) -> dict:
 
 
 def active_services(services):
-    return [service for service in services if not service.deprecated]
+    return [service for service in services if service.active and not service.deprecated]
 
 
 def deprecated_services(services):
-    return [service for service in services if service.deprecated]
+    return [service for service in services if service.deprecated or not service.active]
 
 
 def service_names(services):
@@ -222,7 +222,7 @@ class FileUploaderGui:
         if not deprecated:
             self.deprecated_text.insert("end", "No deprecated services.")
             return
-        self.deprecated_text.insert("end", "Deprecated services disabled: ")
+        self.deprecated_text.insert("end", "Disabled services: ")
         for index, service in enumerate(deprecated):
             if index:
                 self.deprecated_text.insert("end", ", ")
@@ -259,6 +259,8 @@ class FileUploaderGui:
     def _hint_text(self, state, service, fields):
         if service.deprecated:
             return f"{service.display_name} is deprecated and disabled."
+        if not service.active:
+            return f"{service.display_name} is disabled."
         if not fields:
             return f"{service.display_name}: no extra fields required."
         labels = {
