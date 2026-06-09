@@ -8,18 +8,27 @@ FileUploader now exposes one shared provider core through three user interfaces:
 
 `python -m fileuploader` remains available as an equivalent package entrypoint for the same CLI.
 
+Credits are shown in the terminal banner and desktop headers:
+
+- j0rd1s3rr4n0
+- jordiserrano.me
+- github.com/j0rd1s3rr4n0
+
 ## CLI
 
 The primary CLI is built with Typer:
 
 ```shell
 python -m fileuploader_cli services
+python -m fileuploader_cli --no-banner services
 python -m fileuploader_cli guided
 python -m fileuploader_cli upload --service gofile path/to/file.txt --json
 python -m fileuploader_cli info --service anonfilesnew FILE_ID --api-key YOUR_API_KEY
 ```
 
 Use `python -m fileuploader_cli guided` for a step-by-step flow that shows providers, asks for an action, and prompts only for the fields needed by that action.
+
+Use `--no-banner` before the command when you want machine-friendly human output without the banner. JSON output never includes the banner.
 
 Typer is used because it provides a modern command surface while building on Click internally. Click is therefore covered as the underlying command framework. The older argparse scripts remain available as legacy provider-specific entrypoints, but new automation should use `python -m fileuploader`.
 

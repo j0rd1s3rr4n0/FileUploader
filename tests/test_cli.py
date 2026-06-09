@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
+from fileuploader.branding import CREDIT_GITHUB, CREDIT_NAME, CREDIT_SITE
 from fileuploader.cli import app, build_guided_download, build_guided_info, build_guided_upload
 from fileuploader.models import ProviderError, ProviderInfo, UploadResult
 
@@ -46,9 +47,27 @@ class CliTests(unittest.TestCase):
         result = self.runner.invoke(app, ["services"])
 
         self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn(CREDIT_NAME, result.output)
         self.assertIn("Service", result.output)
         self.assertIn("gofile", result.output)
         self.assertIn("deprecated", result.output)
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_no_banner_hides_credits(self, _core):
+        result = self.runner.invoke(app, ["--no-banner", "services"])
+
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertNotIn(CREDIT_NAME, result.output)
+        self.assertNotIn(CREDIT_SITE, result.output)
+        self.assertNotIn(CREDIT_GITHUB, result.output)
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_json_output_never_includes_banner(self, _core):
+        result = self.runner.invoke(app, ["services", "--json"])
+
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertNotIn(CREDIT_NAME, result.output)
+        json.loads(result.output)
 
     @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
     def test_upload_outputs_json(self, _core):

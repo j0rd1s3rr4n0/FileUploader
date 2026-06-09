@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from tkinter import filedialog, font, messagebox, ttk
 
 from fileuploader import FileUploaderCore
+from fileuploader.branding import compact_credit
 from fileuploader.formatting import format_output
 from fileuploader.models import ProviderError
 
@@ -100,18 +101,48 @@ class FileUploaderGui:
         self.core = core or FileUploaderCore()
         self.root.title("FileUploader")
         self.root.geometry("920x680")
+        self.root.configure(bg="#f6f8fb")
         self.services = self.core.services(include_deprecated=True)
         self.active_service_names = service_names(active_services(self.services))
         self.service_lookup = {service.name: service for service in self.services}
+        self._configure_style()
         self._build_widgets()
 
+    def _configure_style(self):
+        self.style = ttk.Style(self.root)
+        try:
+            self.style.theme_use("clam")
+        except tk.TclError:
+            pass
+        self.style.configure("TFrame", background="#f6f8fb")
+        self.style.configure("TLabel", background="#f6f8fb", foreground="#1f2937", font=("Segoe UI", 10))
+        self.style.configure("Hint.TLabel", background="#f6f8fb", foreground="#4b5563", font=("Segoe UI", 9))
+        self.style.configure("TButton", font=("Segoe UI", 10), padding=6)
+        self.style.configure("Accent.TButton", background="#2563eb", foreground="#ffffff", font=("Segoe UI", 10, "bold"), padding=6)
+        self.style.map("Accent.TButton", background=[("active", "#1d4ed8")], foreground=[("active", "#ffffff")])
+        self.style.configure("TCombobox", padding=4)
+        self.style.configure("TEntry", padding=4)
+
     def _build_widgets(self):
-        container = ttk.Frame(self.root, padding=12)
+        container = ttk.Frame(self.root, padding=14)
         container.pack(fill="both", expand=True)
+
+        header = tk.Frame(container, background="#111827", padx=18, pady=14)
+        header.pack(fill="x", pady=(0, 12))
+        tk.Label(header, text="FileUploader", background="#111827", foreground="#ffffff", font=("Segoe UI", 24, "bold")).pack(anchor="w")
+        tk.Label(
+            header,
+            text="Provider-aware uploads with CLI, GUI, and TUI workflows",
+            background="#111827",
+            foreground="#bfdbfe",
+            font=("Segoe UI", 10),
+        ).pack(anchor="w")
+        tk.Label(header, text=compact_credit(), background="#111827", foreground="#93c5fd", font=("Segoe UI", 9)).pack(anchor="w", pady=(3, 0))
 
         ttk.Label(
             container,
             text="Choose a provider, action, and the required fields. Results appear below and can be copied.",
+            style="Hint.TLabel",
         ).pack(fill="x", pady=(0, 10))
 
         controls = ttk.Frame(container)
@@ -163,24 +194,26 @@ class FileUploaderGui:
 
         self.json_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(controls, text="JSON output", variable=self.json_var).grid(row=5, column=1, sticky="w", padx=6)
-        ttk.Button(controls, text="Run action", command=self._run_action).grid(row=5, column=2, sticky="ew", padx=6, pady=8)
+        ttk.Button(controls, text="Run action", command=self._run_action, style="Accent.TButton").grid(row=5, column=2, sticky="ew", padx=6, pady=8)
         ttk.Button(controls, text="Copy result", command=self._copy_result).grid(row=5, column=3, sticky="ew", padx=6, pady=8)
 
         self.hint_var = tk.StringVar(value="Upload: choose a file. Download: enter URL. Info: enter file id.")
-        ttk.Label(controls, textvariable=self.hint_var).grid(row=6, column=0, columnspan=4, sticky="w", pady=(2, 0))
+        ttk.Label(controls, textvariable=self.hint_var, style="Hint.TLabel").grid(row=6, column=0, columnspan=4, sticky="w", pady=(2, 0))
 
         controls.columnconfigure(1, weight=1)
         controls.columnconfigure(3, weight=1)
 
         self.deprecated_text = tk.Text(container, height=3, wrap="none", borderwidth=0)
         self.deprecated_text.pack(fill="x", pady=(10, 0))
+        self.deprecated_text.configure(background="#f6f8fb", foreground="#6b7280", font=("Segoe UI", 9))
         strike_font = font.Font(self.deprecated_text, self.deprecated_text.cget("font"))
         strike_font.configure(overstrike=True)
         self.deprecated_text.tag_configure("deprecated", foreground="#777777", font=strike_font)
         self._render_deprecated_services()
         self.deprecated_text.configure(state="disabled")
 
-        self.output = tk.Text(container, wrap="word", height=18)
+        self.output = tk.Text(container, wrap="word", height=18, borderwidth=1, relief="solid")
+        self.output.configure(background="#ffffff", foreground="#111827", insertbackground="#111827", font=("Consolas", 10))
         self.output.pack(fill="both", expand=True, pady=(10, 0))
         self._sync_service_fields()
 

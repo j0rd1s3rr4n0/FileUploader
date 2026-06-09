@@ -3,6 +3,7 @@ from typing import Optional
 
 import typer
 
+from .branding import banner_text
 from .clipboard import copy_text
 from .core import FileUploaderCore
 from .formatting import format_output, service_rows
@@ -14,6 +15,24 @@ app = typer.Typer(
     help="Upload files with GoFile, AnonFilesNew, JSONBin, AnonFiles, or BayFiles.",
     no_args_is_help=True,
 )
+
+
+def _banner_enabled(ctx: typer.Context, json_output: bool = False) -> bool:
+    return not json_output and not (ctx.obj or {}).get("no_banner", False)
+
+
+def _print_banner(ctx: typer.Context, json_output: bool = False):
+    if _banner_enabled(ctx, json_output):
+        typer.echo(banner_text())
+        typer.echo()
+
+
+@app.callback()
+def app_options(
+    ctx: typer.Context,
+    no_banner: bool = typer.Option(False, "--no-banner", help="Hide the FileUploader banner and credits."),
+):
+    ctx.obj = {"no_banner": no_banner}
 
 
 def _resolve_api_key(api_key: Optional[str], api_key_env: Optional[str]) -> Optional[str]:
@@ -55,19 +74,22 @@ def build_guided_info(core: FileUploaderCore, service: str, file_id: str, api_ke
 
 @app.command()
 def services(
+    ctx: typer.Context,
     json_output: bool = typer.Option(False, "--json", help="Print JSON output."),
     include_deprecated: bool = typer.Option(True, "--include-deprecated/--active-only", help="Include deprecated providers."),
 ):
     """List available providers."""
+    _print_banner(ctx, json_output)
     result = FileUploaderCore().services(include_deprecated=include_deprecated)
     services_data = [service.to_dict() for service in result]
     typer.echo(format_output(services_data, json_output=True) if json_output else service_rows(services_data))
 
 
 @app.command()
-def guided():
+def guided(ctx: typer.Context):
     """Run a step-by-step upload, download, or info flow."""
     core = FileUploaderCore()
+    _print_banner(ctx, json_output=False)
     services_data = [service.to_dict() for service in core.services(include_deprecated=True)]
     typer.echo("Available providers:")
     typer.echo(service_rows(services_data))
@@ -106,6 +128,7 @@ def guided():
 
 @app.command()
 def upload(
+    ctx: typer.Context,
     path: str = typer.Argument(..., help="File path to upload, for example ./document.pdf."),
     service: str = typer.Option(..., "--service", "-s", help="Provider name. Run `services` to list choices."),
     api_key: Optional[str] = typer.Option(None, "--api-key", help="Provider API key. Prefer --api-key-env for repeat use."),
@@ -116,6 +139,7 @@ def upload(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output."),
 ):
     """Upload a file with a provider."""
+    _print_banner(ctx, json_output)
     try:
         require_value(service, path, "Provide a file path to upload.", "path_required")
         result = FileUploaderCore().upload(
@@ -141,6 +165,7 @@ def upload(
 
 @app.command()
 def download(
+    ctx: typer.Context,
     service: str = typer.Option(..., "--service", "-s", help="Provider name. GoFile supports download metadata."),
     url: Optional[str] = typer.Option(None, "--url", help="Direct download URL."),
     server: Optional[str] = typer.Option(None, "--server", help="Provider server."),
@@ -150,6 +175,7 @@ def download(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output."),
 ):
     """Download or fetch download metadata."""
+    _print_banner(ctx, json_output)
     try:
         if not url and not all([server, file_id, filename]):
             raise ProviderError(service, "Provide --url or --server, --file-id, and --filename.", code="download_target_required")
@@ -169,6 +195,7 @@ def download(
 
 @app.command()
 def info(
+    ctx: typer.Context,
     file_id: str = typer.Argument(..., help="Provider file id."),
     service: str = typer.Option(..., "--service", "-s", help="Provider name. AnonFilesNew supports info."),
     api_key: Optional[str] = typer.Option(None, "--api-key", help="Provider API key."),
@@ -176,6 +203,7 @@ def info(
     json_output: bool = typer.Option(False, "--json", help="Print JSON output."),
 ):
     """Fetch provider file metadata."""
+    _print_banner(ctx, json_output)
     try:
         require_value(service, file_id, "Provide the provider file id.", "file_id_required")
         result = FileUploaderCore().info(
