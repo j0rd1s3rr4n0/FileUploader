@@ -8,17 +8,22 @@ from fileuploader.providers import (
     AnonFilesNewProvider,
     BlipbinProvider,
     BoxProvider,
+    CatboxProvider,
     CuploadProvider,
     DropFileDevProvider,
     DropboxProvider,
     EasySendProvider,
+    FileIoProvider,
     GoFileProvider,
+    LitterboxProvider,
     MediaFireProvider,
     MegaProvider,
     MoonPushProvider,
     QurlProvider,
     TempShProvider,
     TmpFileLinkProvider,
+    TransferShProvider,
+    UguuProvider,
     ZeroXZeroProvider,
 )
 
@@ -69,18 +74,23 @@ class ProviderCoreTests(unittest.TestCase):
                 "bayfiles",
                 "blipbin",
                 "box",
+                "catbox",
                 "cupload",
                 "dropfiledev",
                 "dropbox",
                 "easysend",
+                "fileio",
                 "gofile",
                 "jsonbin",
+                "litterbox",
                 "mediafire",
                 "mega",
                 "moonpush",
                 "qurl",
                 "tempsh",
                 "tmpfilelink",
+                "transfersh",
+                "uguu",
             },
             names,
         )
@@ -97,6 +107,8 @@ class ProviderCoreTests(unittest.TestCase):
         self.assertNotIn("mega", names)
         self.assertIn("box", names)
         self.assertIn("dropbox", names)
+        self.assertIn("fileio", names)
+        self.assertIn("catbox", names)
 
     def test_unknown_provider_raises_normalized_error(self):
         with self.assertRaises(ProviderError) as error:
@@ -231,6 +243,7 @@ class ProviderCoreTests(unittest.TestCase):
             (DropFileDevProvider, "dropfiledev", "https://dropfile.dev/f/sample.txt"),
             (CuploadProvider, "cupload", "https://cupload.io/f/sample.txt"),
             (QurlProvider, "qurl", "https://qurl.sh/f/sample.txt"),
+            (TransferShProvider, "transfersh", "https://transfer.sh/sample.txt/abc"),
         ]
 
         for provider_class, provider_name, expected_url in providers:
@@ -246,6 +259,72 @@ class ProviderCoreTests(unittest.TestCase):
                 self.assertEqual(result.url, expected_url)
                 self.assertEqual(http.calls[0][0], "put")
                 self.assertTrue(http.calls[0][1].endswith("/sample.txt"))
+
+    def test_fileio_upload_normalizes_link_and_key(self):
+        payload = {"success": True, "key": "abc123", "link": "https://file.io/abc123", "expiry": "14 days"}
+        provider = FileIoProvider(http_client=FakeHttp(payload))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source)
+
+        self.assertEqual(result.provider, "fileio")
+        self.assertEqual(result.url, "https://file.io/abc123")
+        self.assertEqual(result.file_id, "abc123")
+
+    def test_uguu_upload_normalizes_first_file(self):
+        payload = {
+            "success": True,
+            "files": [
+                {
+                    "hash": "hash-1",
+                    "name": "sample.txt",
+                    "url": "https://files.catbox.moe/sample.txt",
+                    "size": 4,
+                }
+            ],
+        }
+        http = FakeHttp(payload)
+        provider = UguuProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source)
+
+        self.assertEqual(result.provider, "uguu")
+        self.assertEqual(result.url, "https://files.catbox.moe/sample.txt")
+        self.assertEqual(result.file_id, "hash-1")
+        self.assertIn("files[]", http.calls[0][2]["files"])
+
+    def test_catbox_upload_uses_reqtype_and_file_field(self):
+        http = FakeHttp(text="https://files.catbox.moe/sample.txt")
+        provider = CatboxProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source)
+
+        self.assertEqual(result.provider, "catbox")
+        self.assertEqual(result.url, "https://files.catbox.moe/sample.txt")
+        self.assertEqual(http.calls[0][2]["data"]["reqtype"], "fileupload")
+        self.assertIn("fileToUpload", http.calls[0][2]["files"])
+
+    def test_litterbox_upload_uses_default_ttl(self):
+        http = FakeHttp(text="https://litter.catbox.moe/sample.txt")
+        provider = LitterboxProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source)
+
+        self.assertEqual(result.provider, "litterbox")
+        self.assertEqual(result.url, "https://litter.catbox.moe/sample.txt")
+        self.assertEqual(result.metadata["ttl"], "1h")
+        self.assertEqual(http.calls[0][2]["data"]["time"], "1h")
 
     def test_box_upload_uses_oauth_token_and_root_folder(self):
         payload = {

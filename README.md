@@ -69,6 +69,8 @@ Upload without registration:
 python -m fileuploader_cli upload --service moonpush path/to/file.txt
 python -m fileuploader_cli upload --service 0x0 path/to/file.txt
 python -m fileuploader_cli upload --service tmpfilelink path/to/file.txt
+python -m fileuploader_cli upload --service catbox path/to/file.txt
+python -m fileuploader_cli upload --service fileio path/to/file.txt
 ```
 
 Upload with AnonFilesNew using an API key:
@@ -122,6 +124,11 @@ See [docs/interfaces.md](docs/interfaces.md) for the interface design notes and 
 | dropfile.dev | `dropfiledev` | Yes | No | No | No | Active |
 | cupload.io | `cupload` | Yes | No | No | No | Active |
 | qurl.sh | `qurl` | Yes | No | No | No | Active |
+| file.io | `fileio` | Yes | No | No | No | Active |
+| Uguu | `uguu` | Yes | No | No | No | Active |
+| Catbox | `catbox` | Yes | No | No | No | Active |
+| Litterbox | `litterbox` | Yes | No | No | No | Active |
+| transfer.sh | `transfersh` | Yes | No | No | No | Active |
 | Box | `box` | Yes | No | Yes | Yes | Active |
 | Dropbox | `dropbox` | Yes | No | Yes | Yes | Active |
 | MediaFire | `mediafire` | Yes | No | No | Yes | Active |
@@ -142,6 +149,8 @@ python -m fileuploader_cli upload --service moonpush path/to/file.txt
 python -m fileuploader_cli upload --service tempsh path/to/file.txt
 python -m fileuploader_cli upload --service blipbin path/to/file.txt
 python -m fileuploader_cli upload --service dropfiledev path/to/file.txt
+python -m fileuploader_cli upload --service catbox path/to/file.txt
+python -m fileuploader_cli upload --service transfersh path/to/file.txt
 ```
 
 The no-registration providers are best for temporary sharing and automation. Retention, size limits, and rate limits are controlled by each upstream service.

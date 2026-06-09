@@ -374,6 +374,114 @@ class QurlProvider(BaseProvider):
         return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
 
 
+class FileIoProvider(BaseProvider):
+    info = ProviderInfo(
+        name="fileio",
+        display_name="file.io",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://file.io", filepath)
+        if payload.get("success") is False:
+            raise ProviderError(self.info.name, payload.get("message", "Upload failed"), code=payload.get("error"))
+        url = payload.get("link") or payload.get("url")
+        if not url:
+            raise ProviderError(self.info.name, "Upload response did not include a link", code="missing_url")
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url,
+            file_id=payload.get("key") or payload.get("id"),
+            metadata=payload,
+            raw=payload,
+        )
+
+
+class UguuProvider(BaseProvider):
+    info = ProviderInfo(
+        name="uguu",
+        display_name="Uguu",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://uguu.se/upload.php", filepath, file_field="files[]")
+        if payload.get("success") is False:
+            raise ProviderError(self.info.name, payload.get("description", "Upload failed"), code=payload.get("errorcode"))
+        files = payload.get("files") or []
+        file_data = files[0] if files else payload
+        url = file_data.get("url")
+        if not url:
+            raise ProviderError(self.info.name, "Upload response did not include a URL", code="missing_url")
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url,
+            file_id=file_data.get("hash"),
+            metadata=file_data,
+            raw=payload,
+        )
+
+
+class CatboxProvider(BaseProvider):
+    info = ProviderInfo(
+        name="catbox",
+        display_name="Catbox",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post(
+                    "https://catbox.moe/user/api.php",
+                    data={"reqtype": "fileupload"},
+                    files={"fileToUpload": (path.name, file_handle)},
+                )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        url = self._text_response(response)
+        return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
+class LitterboxProvider(BaseProvider):
+    info = ProviderInfo(
+        name="litterbox",
+        display_name="Litterbox",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        ttl = options.get("ttl") or options.get("time") or "1h"
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post(
+                    "https://litterbox.catbox.moe/resources/internals/api.php",
+                    data={"reqtype": "fileupload", "time": ttl},
+                    files={"fileToUpload": (path.name, file_handle)},
+                )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        url = self._text_response(response)
+        return UploadResult(provider=self.info.name, status=True, url=url, metadata={"ttl": ttl}, raw={"response": url})
+
+
+class TransferShProvider(BaseProvider):
+    info = ProviderInfo(
+        name="transfersh",
+        display_name="transfer.sh",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        url = self._put_file_text(f"https://transfer.sh/{path.name}", path)
+        return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
 class BoxProvider(BaseProvider):
     info = ProviderInfo(
         name="box",

@@ -25,6 +25,8 @@ python -m fileuploader_cli guided
 python -m fileuploader_cli upload --service gofile path/to/file.txt --json
 python -m fileuploader_cli upload --service moonpush path/to/file.txt
 python -m fileuploader_cli upload --service tmpfilelink path/to/file.txt
+python -m fileuploader_cli upload --service catbox path/to/file.txt
+python -m fileuploader_cli upload --service fileio path/to/file.txt
 python -m fileuploader_cli info --service anonfilesnew FILE_ID --api-key YOUR_API_KEY
 ```
 
@@ -32,7 +34,7 @@ Use `python -m fileuploader_cli guided` for a step-by-step flow that shows provi
 
 Use `--no-banner` before the command when you want machine-friendly human output without the banner. JSON output never includes the banner.
 
-For quick temporary sharing, prefer the no-registration providers such as `moonpush`, `0x0`, `tempsh`, `tmpfilelink`, `blipbin`, `easysend`, `dropfiledev`, `cupload`, and `qurl`.
+For quick temporary sharing, prefer the no-registration providers such as `moonpush`, `0x0`, `tempsh`, `tmpfilelink`, `blipbin`, `easysend`, `dropfiledev`, `cupload`, `qurl`, `fileio`, `uguu`, `catbox`, `litterbox`, and `transfersh`.
 
 For account-backed storage, use `box`, `dropbox`, or `mediafire` with `--api-key` or `--api-key-env`. `mega` is shown as disabled until a MEGAcmd or SDK-backed implementation is added.
 
