@@ -31,14 +31,32 @@ class BaseProvider:
             raise ProviderError(self.info.name, f"File not found: {filepath}", code="file_not_found")
         return path
 
-    def _post_file(self, url, filepath, **kwargs):
+    def _post_file(self, url, filepath, file_field="file", **kwargs):
         path = self._ensure_file(filepath)
         try:
             with path.open("rb") as file_handle:
-                response = self.http.post(url, files={"file": (path.name, file_handle)}, **kwargs)
+                response = self.http.post(url, files={file_field: (path.name, file_handle)}, **kwargs)
         except requests.RequestException as exc:
             raise ProviderError(self.info.name, str(exc), code="network_error") from exc
         return self._json_response(response)
+
+    def _post_file_text(self, url, filepath, file_field="file", **kwargs):
+        path = self._ensure_file(filepath)
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post(url, files={file_field: (path.name, file_handle)}, **kwargs)
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._text_response(response)
+
+    def _put_file_text(self, url, filepath, **kwargs):
+        path = self._ensure_file(filepath)
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.put(url, data=file_handle, **kwargs)
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._text_response(response)
 
     def _json_response(self, response):
         try:
@@ -49,6 +67,14 @@ class BaseProvider:
             message = payload.get("message") or payload.get("error", {}).get("message") or response.text
             raise ProviderError(self.info.name, message, code="http_error")
         return payload
+
+    def _text_response(self, response):
+        text = getattr(response, "text", "").strip()
+        if getattr(response, "status_code", 200) >= 400:
+            raise ProviderError(self.info.name, text or "Provider returned an HTTP error", code="http_error")
+        if not text:
+            raise ProviderError(self.info.name, "Provider returned an empty response", code="empty_response")
+        return text
 
 
 class GoFileProvider(BaseProvider):
@@ -174,6 +200,171 @@ class JsonBinProvider(BaseProvider):
             metadata=metadata,
             raw=payload,
         )
+
+
+class ZeroXZeroProvider(BaseProvider):
+    info = ProviderInfo(
+        name="0x0",
+        display_name="0x0.st",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        url = self._post_file_text("https://0x0.st", filepath)
+        return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
+class MoonPushProvider(BaseProvider):
+    info = ProviderInfo(
+        name="moonpush",
+        display_name="MoonPush",
+        supports_info=True,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://www.moonpush.com/api/upload", filepath)
+        url = payload.get("shareUrl") or payload.get("share_url") or payload.get("url")
+        download_url = payload.get("downloadUrl") or payload.get("download_url")
+        file_id = payload.get("id") or payload.get("pipeId") or payload.get("fileId")
+        if not url and not download_url:
+            raise ProviderError(self.info.name, "Upload response did not include a URL", code="missing_url")
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url or download_url,
+            short_url=download_url if url and download_url != url else None,
+            file_id=file_id,
+            metadata=payload,
+            raw=payload,
+        )
+
+    def info_file(self, file_id, **options):
+        try:
+            response = self.http.get(f"https://www.moonpush.com/api/share/{file_id}")
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
+
+
+class TempShProvider(BaseProvider):
+    info = ProviderInfo(
+        name="tempsh",
+        display_name="Temp.sh",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        url = self._post_file_text("https://temp.sh/upload", filepath)
+        return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
+class TmpFileLinkProvider(BaseProvider):
+    info = ProviderInfo(
+        name="tmpfilelink",
+        display_name="tmpfile.link",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://tmpfile.link/api/upload", filepath)
+        url = payload.get("downloadLink") or payload.get("download_link") or payload.get("url")
+        if not url:
+            raise ProviderError(self.info.name, "Upload response did not include a download link", code="missing_url")
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url,
+            short_url=payload.get("downloadLinkEncoded"),
+            file_id=payload.get("fileId") or payload.get("id"),
+            metadata=payload,
+            raw=payload,
+        )
+
+
+class BlipbinProvider(BaseProvider):
+    info = ProviderInfo(
+        name="blipbin",
+        display_name="blipbin",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post("https://blipbin.com/upload", files={"file": (path.name, file_handle)})
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        url = self._text_response(response)
+        token = getattr(response, "headers", {}).get("X-Token")
+        metadata = {"delete_token": token} if token else {}
+        return UploadResult(provider=self.info.name, status=True, url=url, metadata=metadata, raw={"response": url})
+
+
+class EasySendProvider(BaseProvider):
+    info = ProviderInfo(
+        name="easysend",
+        display_name="EasySend",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        payload = self._post_file("https://easysend.co/api/v1/upload", filepath, file_field="files[]")
+        url = payload.get("share_url") or payload.get("shareUrl")
+        short_code = payload.get("short_code") or payload.get("shortCode")
+        if not url and short_code:
+            url = f"https://easysend.co/{short_code}"
+        elif url and url.startswith("/"):
+            url = f"https://easysend.co{url}"
+        if not url:
+            raise ProviderError(self.info.name, "Upload response did not include a share URL", code="missing_url")
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url,
+            file_id=short_code,
+            metadata=payload,
+            raw=payload,
+        )
+
+
+class DropFileDevProvider(BaseProvider):
+    info = ProviderInfo(
+        name="dropfiledev",
+        display_name="dropfile.dev",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        url = self._put_file_text(f"https://dropfile.dev/{path.name}", path)
+        return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
+class CuploadProvider(BaseProvider):
+    info = ProviderInfo(
+        name="cupload",
+        display_name="cupload.io",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        url = self._put_file_text(f"https://cupload.io/{path.name}", path)
+        return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
+class QurlProvider(BaseProvider):
+    info = ProviderInfo(
+        name="qurl",
+        display_name="qurl.sh",
+        supports_info=False,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        url = self._put_file_text(f"https://qurl.sh/{path.name}", path)
+        return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
 
 
 class AnonFilesProvider(AnonFilesNewProvider):
