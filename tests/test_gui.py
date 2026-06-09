@@ -1,7 +1,18 @@
 import unittest
 
-from fileuploader.models import ProviderError
-from fileuploader_gui import GuiState, build_options, default_state, validate_state
+from fileuploader.models import ProviderError, ProviderInfo
+from fileuploader_gui import (
+    GuiState,
+    actions_for_service,
+    active_services,
+    build_options,
+    default_service_name,
+    default_state,
+    deprecated_services,
+    required_fields_for_state,
+    service_names,
+    validate_state,
+)
 
 
 class GuiSmokeTests(unittest.TestCase):
@@ -30,6 +41,51 @@ class GuiSmokeTests(unittest.TestCase):
             validate_state(GuiState(action="upload", path=""))
 
         self.assertEqual(error.exception.code, "path_required")
+
+    def test_active_services_excludes_deprecated_services(self):
+        services = [
+            ProviderInfo(name="gofile", display_name="GoFile"),
+            ProviderInfo(name="bayfiles", display_name="BayFiles", deprecated=True),
+        ]
+
+        self.assertEqual(service_names(active_services(services)), ["gofile"])
+        self.assertEqual(service_names(deprecated_services(services)), ["bayfiles"])
+
+    def test_default_service_prefers_gofile(self):
+        services = [
+            ProviderInfo(name="anonfilesnew", display_name="AnonFilesNew"),
+            ProviderInfo(name="gofile", display_name="GoFile"),
+        ]
+
+        self.assertEqual(default_service_name(services), "gofile")
+
+    def test_actions_follow_provider_capabilities(self):
+        service = ProviderInfo(name="anonfilesnew", display_name="AnonFilesNew", supports_download=False, supports_info=True)
+
+        self.assertEqual(actions_for_service(service), ["upload", "info"])
+
+    def test_required_fields_follow_action_and_api_key(self):
+        service = ProviderInfo(name="anonfilesnew", display_name="AnonFilesNew", supports_info=True, requires_api_key=True)
+
+        fields = required_fields_for_state(GuiState(action="info"), service)
+
+        self.assertEqual(fields, {"file_id", "api_key"})
+
+    def test_validate_state_rejects_unsupported_action(self):
+        service = ProviderInfo(name="jsonbin", display_name="JSONBin", supports_download=False)
+
+        with self.assertRaises(ProviderError) as error:
+            validate_state(GuiState(service="jsonbin", action="download", url="https://example.test"), service)
+
+        self.assertEqual(error.exception.code, "unsupported_action")
+
+    def test_validate_state_requires_api_key_for_api_key_services(self):
+        service = ProviderInfo(name="jsonbin", display_name="JSONBin", requires_api_key=True)
+
+        with self.assertRaises(ProviderError) as error:
+            validate_state(GuiState(service="jsonbin", action="upload", path="file.txt"), service)
+
+        self.assertEqual(error.exception.code, "api_key_required")
 
 
 if __name__ == "__main__":
