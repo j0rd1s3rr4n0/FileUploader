@@ -25,21 +25,23 @@ class TuiRequest:
 
 def service_table(core=None) -> Table:
     core = core or FileUploaderCore()
-    table = Table(title="FileUploader Services")
-    table.add_column("Name")
+    table = Table(title="FileUploader Services", show_header=True, header_style="bold cyan", border_style="bright_black")
+    table.add_column("Name", style="bold")
     table.add_column("Display")
-    table.add_column("Upload")
-    table.add_column("Download")
-    table.add_column("Info")
+    table.add_column("Upload", justify="center")
+    table.add_column("Download", justify="center")
+    table.add_column("Info", justify="center")
     table.add_column("Status")
     for service in core.services(include_deprecated=True):
+        status = "disabled" if not service.active else "deprecated" if service.deprecated else "active"
+        status_style = "bright_black" if status == "disabled" else "yellow" if status == "deprecated" else "green"
         table.add_row(
             service.name,
             service.display_name,
-            "yes" if service.supports_upload else "no",
-            "yes" if service.supports_download else "no",
-            "yes" if service.supports_info else "no",
-            "disabled" if not service.active else "deprecated" if service.deprecated else "active",
+            "[green]yes[/]" if service.supports_upload else "[bright_black]no[/]",
+            "[green]yes[/]" if service.supports_download else "[bright_black]no[/]",
+            "[green]yes[/]" if service.supports_info else "[bright_black]no[/]",
+            f"[{status_style}]{status}[/]",
         )
     return table
 
@@ -84,8 +86,8 @@ class FileUploaderTui:
             return {"ok": False, "error": exc.to_dict()}
 
     def interactive(self):
-        self.console.print(Panel.fit(banner_text(), title="FileUploader TUI"))
-        self.console.print("Pick a provider, choose an action, then fill only the fields requested.")
+        self.console.print(Panel.fit(banner_text(), title="[bold cyan]FileUploader TUI[/]", border_style="cyan"))
+        self.console.print("[bright_black]Pick a provider, choose an action, then fill only the fields requested.[/]")
         self.console.print(service_table(self.core))
         services = [service.name for service in self.core.services(include_deprecated=True)]
         while True:
