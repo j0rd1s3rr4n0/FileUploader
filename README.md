@@ -16,7 +16,7 @@ FileUploader provides a shared provider layer plus three user interfaces:
 
 Created by **j0rd1s3rr4n0**: [jordiserrano.me](https://jordiserrano.me) | [github.com/j0rd1s3rr4n0](https://github.com/j0rd1s3rr4n0)
 
-The current provider set includes GoFile plus a broad no-registration upload set: 0x0.st, MoonPush, Temp.sh, tmpfile.link, blipbin, EasySend, dropfile.dev, cupload.io, and qurl.sh. Deprecated providers remain available for compatibility, but upstream APIs may be unreliable.
+The current provider set includes GoFile, a broad no-registration upload set, and account-backed cloud providers such as Box, Dropbox, MediaFire, and MEGA. Deprecated providers remain available for compatibility, but upstream APIs may be unreliable.
 
 ## Features
 
@@ -122,6 +122,10 @@ See [docs/interfaces.md](docs/interfaces.md) for the interface design notes and 
 | dropfile.dev | `dropfiledev` | Yes | No | No | No | Active |
 | cupload.io | `cupload` | Yes | No | No | No | Active |
 | qurl.sh | `qurl` | Yes | No | No | No | Active |
+| Box | `box` | Yes | No | Yes | Yes | Active |
+| Dropbox | `dropbox` | Yes | No | Yes | Yes | Active |
+| MediaFire | `mediafire` | Yes | No | No | Yes | Active |
+| MEGA | `mega` | No | No | No | Yes | Disabled |
 | AnonFilesNew | `anonfilesnew` | Yes | No | Yes | Yes | Active |
 | JSONBin | `jsonbin` | Yes | No | No | Yes | Active |
 | AnonFiles | `anonfiles` | Yes | No | No | No | Deprecated |
@@ -141,6 +145,27 @@ python -m fileuploader_cli upload --service dropfiledev path/to/file.txt
 ```
 
 The no-registration providers are best for temporary sharing and automation. Retention, size limits, and rate limits are controlled by each upstream service.
+
+### Account-backed cloud providers
+
+Box, Dropbox, and MediaFire require account credentials or access tokens:
+
+```shell
+python -m fileuploader_cli upload --service box path/to/file.txt --api-key BOX_OAUTH_ACCESS_TOKEN
+python -m fileuploader_cli upload --service dropbox path/to/file.txt --api-key DROPBOX_OAUTH_ACCESS_TOKEN
+python -m fileuploader_cli upload --service mediafire path/to/file.txt --api-key MEDIAFIRE_SESSION_TOKEN
+```
+
+Environment variable shortcuts are also supported:
+
+```shell
+set BOX_ACCESS_TOKEN=...
+set DROPBOX_ACCESS_TOKEN=...
+set MEDIAFIRE_SESSION_TOKEN=...
+python -m fileuploader_cli upload --service dropbox path/to/file.txt --api-key-env DROPBOX_ACCESS_TOKEN
+```
+
+MEGA is listed as disabled because reliable uploads require MEGAcmd or an SDK-backed implementation rather than a simple HTTP upload endpoint.
 
 ### GoFile
 

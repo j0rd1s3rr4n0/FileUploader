@@ -14,7 +14,7 @@ def service_rows(services: list[dict[str, Any]]) -> str:
                 "yes" if service["supports_download"] else "no",
                 "yes" if service["supports_info"] else "no",
                 "yes" if service["requires_api_key"] else "no",
-                "deprecated" if service["deprecated"] else "active",
+                "disabled" if not service["active"] else "deprecated" if service["deprecated"] else "active",
             ]
         )
     widths = [len(header) for header in headers]

@@ -7,10 +7,14 @@ from fileuploader import FileUploaderCore, ProviderError, create_default_registr
 from fileuploader.providers import (
     AnonFilesNewProvider,
     BlipbinProvider,
+    BoxProvider,
     CuploadProvider,
     DropFileDevProvider,
+    DropboxProvider,
     EasySendProvider,
     GoFileProvider,
+    MediaFireProvider,
+    MegaProvider,
     MoonPushProvider,
     QurlProvider,
     TempShProvider,
@@ -64,11 +68,15 @@ class ProviderCoreTests(unittest.TestCase):
                 "anonfilesnew",
                 "bayfiles",
                 "blipbin",
+                "box",
                 "cupload",
                 "dropfiledev",
+                "dropbox",
                 "easysend",
                 "gofile",
                 "jsonbin",
+                "mediafire",
+                "mega",
                 "moonpush",
                 "qurl",
                 "tempsh",
@@ -78,6 +86,17 @@ class ProviderCoreTests(unittest.TestCase):
         )
         self.assertTrue(any(service.deprecated for service in services if service.name == "anonfiles"))
         self.assertTrue(any(service.deprecated for service in services if service.name == "bayfiles"))
+        self.assertFalse(next(service.active for service in services if service.name == "mega"))
+
+    def test_registry_active_only_excludes_deprecated_and_disabled_services(self):
+        services = FileUploaderCore(create_default_registry()).services(include_deprecated=False)
+        names = {service.name for service in services}
+
+        self.assertNotIn("anonfiles", names)
+        self.assertNotIn("bayfiles", names)
+        self.assertNotIn("mega", names)
+        self.assertIn("box", names)
+        self.assertIn("dropbox", names)
 
     def test_unknown_provider_raises_normalized_error(self):
         with self.assertRaises(ProviderError) as error:
@@ -227,6 +246,86 @@ class ProviderCoreTests(unittest.TestCase):
                 self.assertEqual(result.url, expected_url)
                 self.assertEqual(http.calls[0][0], "put")
                 self.assertTrue(http.calls[0][1].endswith("/sample.txt"))
+
+    def test_box_upload_uses_oauth_token_and_root_folder(self):
+        payload = {
+            "entries": [
+                {
+                    "id": "box-file-1",
+                    "name": "sample.txt",
+                    "shared_link": {"url": "https://box.com/s/file"},
+                }
+            ]
+        }
+        http = FakeHttp(payload)
+        provider = BoxProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source, api_key="box-token")
+
+        self.assertEqual(result.provider, "box")
+        self.assertEqual(result.url, "https://box.com/s/file")
+        self.assertEqual(result.file_id, "box-file-1")
+        self.assertEqual(http.calls[0][2]["headers"]["Authorization"], "Bearer box-token")
+
+    def test_dropbox_upload_uses_content_endpoint(self):
+        payload = {"id": "dropbox-file-1", "path_display": "/sample.txt", "name": "sample.txt"}
+        http = FakeHttp(payload)
+        provider = DropboxProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source, api_key="dropbox-token")
+
+        self.assertEqual(result.provider, "dropbox")
+        self.assertEqual(result.url, "/sample.txt")
+        self.assertEqual(result.file_id, "dropbox-file-1")
+        self.assertEqual(http.calls[0][1], "https://content.dropboxapi.com/2/files/upload")
+        self.assertEqual(http.calls[0][2]["headers"]["Authorization"], "Bearer dropbox-token")
+
+    def test_mediafire_upload_uses_session_token(self):
+        payload = {
+            "response": {
+                "doupload": {
+                    "quickkey": "mf-file-1",
+                    "normal_download": "https://www.mediafire.com/file/mf-file-1/sample.txt",
+                }
+            }
+        }
+        http = FakeHttp(payload)
+        provider = MediaFireProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source, api_key="mediafire-session")
+
+        self.assertEqual(result.provider, "mediafire")
+        self.assertEqual(result.url, "https://www.mediafire.com/file/mf-file-1/sample.txt")
+        self.assertEqual(result.file_id, "mf-file-1")
+        self.assertEqual(http.calls[0][2]["params"]["session_token"], "mediafire-session")
+
+    def test_account_provider_requires_token(self):
+        provider = DropboxProvider(http_client=FakeHttp({}))
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            with self.assertRaises(ProviderError) as error:
+                provider.upload(source)
+
+        self.assertEqual(error.exception.code, "api_key_required")
+
+    def test_mega_provider_is_disabled(self):
+        provider = MegaProvider()
+
+        with self.assertRaises(ProviderError) as error:
+            provider.upload("sample.txt")
+
+        self.assertEqual(error.exception.code, "provider_disabled")
 
 
 if __name__ == "__main__":

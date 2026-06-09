@@ -31,7 +31,7 @@ def service_table(core=None) -> Table:
     table.add_column("Upload")
     table.add_column("Download")
     table.add_column("Info")
-    table.add_column("Deprecated")
+    table.add_column("Status")
     for service in core.services(include_deprecated=True):
         table.add_row(
             service.name,
@@ -39,7 +39,7 @@ def service_table(core=None) -> Table:
             "yes" if service.supports_upload else "no",
             "yes" if service.supports_download else "no",
             "yes" if service.supports_info else "no",
-            "yes" if service.deprecated else "no",
+            "disabled" if not service.active else "deprecated" if service.deprecated else "active",
         )
     return table
 

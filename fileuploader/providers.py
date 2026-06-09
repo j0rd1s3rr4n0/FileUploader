@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import json
 import os
 import time
 import uuid
@@ -30,6 +31,12 @@ class BaseProvider:
         if not path.is_file():
             raise ProviderError(self.info.name, f"File not found: {filepath}", code="file_not_found")
         return path
+
+    def _api_key(self, options, default_env_name, label="API key"):
+        api_key = options.get("api_key") or os.environ.get(options.get("api_key_env") or default_env_name)
+        if not api_key:
+            raise ProviderError(self.info.name, f"Provide a {label}", code="api_key_required")
+        return api_key
 
     def _post_file(self, url, filepath, file_field="file", **kwargs):
         path = self._ensure_file(filepath)
@@ -365,6 +372,161 @@ class QurlProvider(BaseProvider):
         path = self._ensure_file(filepath)
         url = self._put_file_text(f"https://qurl.sh/{path.name}", path)
         return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
+class BoxProvider(BaseProvider):
+    info = ProviderInfo(
+        name="box",
+        display_name="Box",
+        supports_download=False,
+        supports_info=True,
+        requires_api_key=True,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        access_token = self._api_key(options, "BOX_ACCESS_TOKEN", "Box OAuth access token")
+        folder_id = options.get("folder_id") or "0"
+        attributes = {"name": path.name, "parent": {"id": str(folder_id)}}
+        headers = {"Authorization": f"Bearer {access_token}"}
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post(
+                    "https://upload.box.com/api/2.0/files/content",
+                    headers=headers,
+                    files=[
+                        ("attributes", (None, json.dumps(attributes), "application/json")),
+                        ("file", (path.name, file_handle, "application/octet-stream")),
+                    ],
+                )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        payload = self._json_response(response)
+        entries = payload.get("entries") or []
+        file_data = entries[0] if entries else payload
+        file_id = file_data.get("id")
+        url = file_data.get("shared_link", {}).get("url") or file_data.get("url")
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url,
+            file_id=file_id,
+            metadata=file_data,
+            raw=payload,
+        )
+
+    def info_file(self, file_id, **options):
+        access_token = self._api_key(options, "BOX_ACCESS_TOKEN", "Box OAuth access token")
+        try:
+            response = self.http.get(
+                f"https://api.box.com/2.0/files/{file_id}",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
+
+
+class DropboxProvider(BaseProvider):
+    info = ProviderInfo(
+        name="dropbox",
+        display_name="Dropbox",
+        supports_download=False,
+        supports_info=True,
+        requires_api_key=True,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        access_token = self._api_key(options, "DROPBOX_ACCESS_TOKEN", "Dropbox OAuth access token")
+        dropbox_path = options.get("dropbox_path") or f"/{path.name}"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/octet-stream",
+            "Dropbox-API-Arg": json.dumps({"path": dropbox_path, "mode": "add", "autorename": True, "mute": False}),
+        }
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post("https://content.dropboxapi.com/2/files/upload", headers=headers, data=file_handle)
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        payload = self._json_response(response)
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=payload.get("path_display"),
+            file_id=payload.get("id"),
+            metadata=payload,
+            raw=payload,
+        )
+
+    def info_file(self, file_id, **options):
+        access_token = self._api_key(options, "DROPBOX_ACCESS_TOKEN", "Dropbox OAuth access token")
+        try:
+            response = self.http.post(
+                "https://api.dropboxapi.com/2/files/get_metadata",
+                headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
+                json={"path": file_id},
+            )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
+
+
+class MediaFireProvider(BaseProvider):
+    info = ProviderInfo(
+        name="mediafire",
+        display_name="MediaFire",
+        supports_download=False,
+        supports_info=False,
+        requires_api_key=True,
+    )
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        session_token = self._api_key(options, "MEDIAFIRE_SESSION_TOKEN", "MediaFire session token")
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post(
+                    "https://www.mediafire.com/api/1.5/upload/simple.php",
+                    params={"session_token": session_token, "response_format": "json"},
+                    headers={"x-filename": path.name, "x-filesize": str(path.stat().st_size)},
+                    data=file_handle,
+                )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        payload = self._json_response(response)
+        response_data = payload.get("response", payload)
+        upload_data = response_data.get("doupload", response_data.get("upload", response_data))
+        file_id = upload_data.get("quickkey") or upload_data.get("key") or upload_data.get("upload_key")
+        url = upload_data.get("normal_download") or upload_data.get("link") or upload_data.get("url")
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url,
+            file_id=file_id,
+            metadata=upload_data,
+            raw=payload,
+        )
+
+
+class MegaProvider(BaseProvider):
+    info = ProviderInfo(
+        name="mega",
+        display_name="MEGA",
+        active=False,
+        supports_upload=False,
+        supports_download=False,
+        supports_info=False,
+        requires_api_key=True,
+    )
+
+    def upload(self, filepath, **options):
+        raise ProviderError(
+            self.info.name,
+            "MEGA uploads require MEGAcmd or an SDK-backed implementation; this provider is listed but disabled.",
+            code="provider_disabled",
+        )
 
 
 class AnonFilesProvider(AnonFilesNewProvider):
