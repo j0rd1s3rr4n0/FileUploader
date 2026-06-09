@@ -6,6 +6,7 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
 from fileuploader import FileUploaderCore
+from fileuploader.branding import banner_text
 from fileuploader.formatting import format_output
 from fileuploader.models import ProviderError
 
@@ -83,7 +84,8 @@ class FileUploaderTui:
             return {"ok": False, "error": exc.to_dict()}
 
     def interactive(self):
-        self.console.print(Panel.fit("FileUploader TUI\nPick a provider, choose an action, then fill only the fields requested."))
+        self.console.print(Panel.fit(banner_text(), title="FileUploader TUI"))
+        self.console.print("Pick a provider, choose an action, then fill only the fields requested.")
         self.console.print(service_table(self.core))
         services = [service.name for service in self.core.services(include_deprecated=True)]
         while True:

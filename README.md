@@ -14,6 +14,8 @@ FileUploader provides a shared provider layer plus three user interfaces:
 
 `python -m fileuploader` is kept as an equivalent package entrypoint for the same CLI.
 
+Created by **j0rd1s3rr4n0**: [jordiserrano.me](https://jordiserrano.me) · [github.com/j0rd1s3rr4n0](https://github.com/j0rd1s3rr4n0)
+
 The current provider set includes GoFile, AnonFilesNew, JSONBin, AnonFiles, and BayFiles. Deprecated providers remain available for compatibility, but upstream APIs may be unreliable.
 
 ## Features
@@ -41,6 +43,12 @@ List all providers:
 
 ```shell
 python -m fileuploader_cli services
+```
+
+Hide the terminal banner and credits when scripting:
+
+```shell
+python -m fileuploader_cli --no-banner services
 ```
 
 Use the guided CLI when you do not remember the flags:
@@ -83,11 +91,11 @@ python -m fileuploader_tui
 ## CLI Reference
 
 ```shell
-python -m fileuploader_cli services [--json] [--active-only]
-python -m fileuploader_cli guided
-python -m fileuploader_cli upload PATH --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json] [--plaintext] [--copy] [--verbose]
-python -m fileuploader_cli download --service SERVICE [--url URL] [--server SERVER --file-id FILE_ID --filename NAME] [--json]
-python -m fileuploader_cli info FILE_ID --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json]
+python -m fileuploader_cli [--no-banner] services [--json] [--active-only]
+python -m fileuploader_cli [--no-banner] guided
+python -m fileuploader_cli [--no-banner] upload PATH --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json] [--plaintext] [--copy] [--verbose]
+python -m fileuploader_cli [--no-banner] download --service SERVICE [--url URL] [--server SERVER --file-id FILE_ID --filename NAME] [--json]
+python -m fileuploader_cli [--no-banner] info FILE_ID --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json]
 ```
 
 See [docs/interfaces.md](docs/interfaces.md) for the interface design notes and framework comparison.
@@ -151,6 +159,7 @@ Expected local smoke checks:
 
 ```shell
 python -m fileuploader_cli services --json
+python -m fileuploader_cli --no-banner services
 python -c "from fileuploader_tui import service_table; print(len(service_table().rows))"
 python -c "import fileuploader_gui; print(fileuploader_gui.default_state())"
 ```
