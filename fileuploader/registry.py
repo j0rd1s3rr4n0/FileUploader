@@ -3,8 +3,17 @@ from .providers import (
     AnonFilesNewProvider,
     AnonFilesProvider,
     BayFilesProvider,
+    BlipbinProvider,
+    CuploadProvider,
+    DropFileDevProvider,
+    EasySendProvider,
     GoFileProvider,
     JsonBinProvider,
+    MoonPushProvider,
+    QurlProvider,
+    TempShProvider,
+    TmpFileLinkProvider,
+    ZeroXZeroProvider,
 )
 
 
@@ -35,6 +44,15 @@ def create_default_registry():
             GoFileProvider(),
             AnonFilesNewProvider(),
             JsonBinProvider(),
+            ZeroXZeroProvider(),
+            MoonPushProvider(),
+            TempShProvider(),
+            TmpFileLinkProvider(),
+            BlipbinProvider(),
+            EasySendProvider(),
+            DropFileDevProvider(),
+            CuploadProvider(),
+            QurlProvider(),
             AnonFilesProvider(),
             BayFilesProvider(),
         ]

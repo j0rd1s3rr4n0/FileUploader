@@ -23,12 +23,16 @@ python -m fileuploader_cli services
 python -m fileuploader_cli --no-banner services
 python -m fileuploader_cli guided
 python -m fileuploader_cli upload --service gofile path/to/file.txt --json
+python -m fileuploader_cli upload --service moonpush path/to/file.txt
+python -m fileuploader_cli upload --service tmpfilelink path/to/file.txt
 python -m fileuploader_cli info --service anonfilesnew FILE_ID --api-key YOUR_API_KEY
 ```
 
 Use `python -m fileuploader_cli guided` for a step-by-step flow that shows providers, asks for an action, and prompts only for the fields needed by that action.
 
 Use `--no-banner` before the command when you want machine-friendly human output without the banner. JSON output never includes the banner.
+
+For quick temporary sharing, prefer the no-registration providers such as `moonpush`, `0x0`, `tempsh`, `tmpfilelink`, `blipbin`, `easysend`, `dropfiledev`, `cupload`, and `qurl`.
 
 Typer is used because it provides a modern command surface while building on Click internally. Click is therefore covered as the underlying command framework. The older argparse scripts remain available as legacy provider-specific entrypoints, but new automation should use `python -m fileuploader`.
 

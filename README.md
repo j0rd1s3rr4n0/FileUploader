@@ -14,9 +14,9 @@ FileUploader provides a shared provider layer plus three user interfaces:
 
 `python -m fileuploader` is kept as an equivalent package entrypoint for the same CLI.
 
-Created by **j0rd1s3rr4n0**: [jordiserrano.me](https://jordiserrano.me) · [github.com/j0rd1s3rr4n0](https://github.com/j0rd1s3rr4n0)
+Created by **j0rd1s3rr4n0**: [jordiserrano.me](https://jordiserrano.me) | [github.com/j0rd1s3rr4n0](https://github.com/j0rd1s3rr4n0)
 
-The current provider set includes GoFile, AnonFilesNew, JSONBin, AnonFiles, and BayFiles. Deprecated providers remain available for compatibility, but upstream APIs may be unreliable.
+The current provider set includes GoFile plus a broad no-registration upload set: 0x0.st, MoonPush, Temp.sh, tmpfile.link, blipbin, EasySend, dropfile.dev, cupload.io, and qurl.sh. Deprecated providers remain available for compatibility, but upstream APIs may be unreliable.
 
 ## Features
 
@@ -63,6 +63,14 @@ Upload a file with GoFile and print JSON:
 python -m fileuploader_cli upload --service gofile path/to/file.txt --json
 ```
 
+Upload without registration:
+
+```shell
+python -m fileuploader_cli upload --service moonpush path/to/file.txt
+python -m fileuploader_cli upload --service 0x0 path/to/file.txt
+python -m fileuploader_cli upload --service tmpfilelink path/to/file.txt
+```
+
 Upload with AnonFilesNew using an API key:
 
 ```shell
@@ -105,12 +113,34 @@ See [docs/interfaces.md](docs/interfaces.md) for the interface design notes and 
 | Provider | Service name | Upload | Download | Info | API key | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | GoFile | `gofile` | Yes | Yes | No | No | Active |
+| 0x0.st | `0x0` | Yes | No | No | No | Active |
+| MoonPush | `moonpush` | Yes | No | Yes | No | Active |
+| Temp.sh | `tempsh` | Yes | No | No | No | Active |
+| tmpfile.link | `tmpfilelink` | Yes | No | No | No | Active |
+| blipbin | `blipbin` | Yes | No | No | No | Active |
+| EasySend | `easysend` | Yes | No | No | No | Active |
+| dropfile.dev | `dropfiledev` | Yes | No | No | No | Active |
+| cupload.io | `cupload` | Yes | No | No | No | Active |
+| qurl.sh | `qurl` | Yes | No | No | No | Active |
 | AnonFilesNew | `anonfilesnew` | Yes | No | Yes | Yes | Active |
 | JSONBin | `jsonbin` | Yes | No | No | Yes | Active |
 | AnonFiles | `anonfiles` | Yes | No | No | No | Deprecated |
 | BayFiles | `bayfiles` | Yes | No | No | No | Deprecated |
 
 ## Provider-Specific Notes
+
+### No-registration providers
+
+Use these when you want a quick public link without creating an account or passing API keys:
+
+```shell
+python -m fileuploader_cli upload --service moonpush path/to/file.txt
+python -m fileuploader_cli upload --service tempsh path/to/file.txt
+python -m fileuploader_cli upload --service blipbin path/to/file.txt
+python -m fileuploader_cli upload --service dropfiledev path/to/file.txt
+```
+
+The no-registration providers are best for temporary sharing and automation. Retention, size limits, and rate limits are controlled by each upstream service.
 
 ### GoFile
 
