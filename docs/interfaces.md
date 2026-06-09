@@ -2,22 +2,24 @@
 
 FileUploader now exposes one shared provider core through three user interfaces:
 
-- `python -m fileuploader` for command-line automation.
+- `python -m fileuploader_cli` for command-line automation.
 - `python -m fileuploader_gui` for a lightweight desktop workflow.
 - `python -m fileuploader_tui` for terminal-guided interactive use.
+
+`python -m fileuploader` remains available as an equivalent package entrypoint for the same CLI.
 
 ## CLI
 
 The primary CLI is built with Typer:
 
 ```shell
-python -m fileuploader services
-python -m fileuploader guided
-python -m fileuploader upload --service gofile path/to/file.txt --json
-python -m fileuploader info --service anonfilesnew FILE_ID --api-key YOUR_API_KEY
+python -m fileuploader_cli services
+python -m fileuploader_cli guided
+python -m fileuploader_cli upload --service gofile path/to/file.txt --json
+python -m fileuploader_cli info --service anonfilesnew FILE_ID --api-key YOUR_API_KEY
 ```
 
-Use `python -m fileuploader guided` for a step-by-step flow that shows providers, asks for an action, and prompts only for the fields needed by that action.
+Use `python -m fileuploader_cli guided` for a step-by-step flow that shows providers, asks for an action, and prompts only for the fields needed by that action.
 
 Typer is used because it provides a modern command surface while building on Click internally. Click is therefore covered as the underlying command framework. The older argparse scripts remain available as legacy provider-specific entrypoints, but new automation should use `python -m fileuploader`.
 
@@ -47,5 +49,5 @@ Run the full local validation suite with:
 
 ```shell
 python -m unittest discover -s tests
-python -m py_compile fileuploader/*.py fileuploader_gui.py fileuploader_tui.py
+python -m py_compile fileuploader/*.py fileuploader_cli.py fileuploader_gui.py fileuploader_tui.py
 ```

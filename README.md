@@ -8,9 +8,11 @@ Unified Python tooling for uploading files to multiple file-hosting providers.
 
 FileUploader provides a shared provider layer plus three user interfaces:
 
-- **CLI** for automation and scripts: `python -m fileuploader`
+- **CLI** for automation and scripts: `python -m fileuploader_cli`
 - **GUI** for desktop users: `python -m fileuploader_gui`
 - **TUI** for guided terminal use: `python -m fileuploader_tui`
+
+`python -m fileuploader` is kept as an equivalent package entrypoint for the same CLI.
 
 The current provider set includes GoFile, AnonFilesNew, JSONBin, AnonFiles, and BayFiles. Deprecated providers remain available for compatibility, but upstream APIs may be unreliable.
 
@@ -38,32 +40,32 @@ python -m pip install -r requirements.txt
 List all providers:
 
 ```shell
-python -m fileuploader services
+python -m fileuploader_cli services
 ```
 
 Use the guided CLI when you do not remember the flags:
 
 ```shell
-python -m fileuploader guided
+python -m fileuploader_cli guided
 ```
 
 Upload a file with GoFile and print JSON:
 
 ```shell
-python -m fileuploader upload --service gofile path/to/file.txt --json
+python -m fileuploader_cli upload --service gofile path/to/file.txt --json
 ```
 
 Upload with AnonFilesNew using an API key:
 
 ```shell
-python -m fileuploader upload --service anonfilesnew path/to/file.txt --api-key YOUR_API_KEY --json
+python -m fileuploader_cli upload --service anonfilesnew path/to/file.txt --api-key YOUR_API_KEY --json
 ```
 
 Use an API key from an environment variable:
 
 ```shell
 set ANONFILESNEW_API_KEY=YOUR_API_KEY
-python -m fileuploader upload --service anonfilesnew path/to/file.txt --api-key-env ANONFILESNEW_API_KEY
+python -m fileuploader_cli upload --service anonfilesnew path/to/file.txt --api-key-env ANONFILESNEW_API_KEY
 ```
 
 Launch the desktop GUI:
@@ -81,11 +83,11 @@ python -m fileuploader_tui
 ## CLI Reference
 
 ```shell
-python -m fileuploader services [--json] [--active-only]
-python -m fileuploader guided
-python -m fileuploader upload PATH --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json] [--plaintext] [--copy] [--verbose]
-python -m fileuploader download --service SERVICE [--url URL] [--server SERVER --file-id FILE_ID --filename NAME] [--json]
-python -m fileuploader info FILE_ID --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json]
+python -m fileuploader_cli services [--json] [--active-only]
+python -m fileuploader_cli guided
+python -m fileuploader_cli upload PATH --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json] [--plaintext] [--copy] [--verbose]
+python -m fileuploader_cli download --service SERVICE [--url URL] [--server SERVER --file-id FILE_ID --filename NAME] [--json]
+python -m fileuploader_cli info FILE_ID --service SERVICE [--api-key KEY] [--api-key-env ENV] [--json]
 ```
 
 See [docs/interfaces.md](docs/interfaces.md) for the interface design notes and framework comparison.
@@ -142,13 +144,13 @@ python -m unittest discover -s tests
 Compile the main modules:
 
 ```shell
-python -m py_compile fileuploader/*.py fileuploader_gui.py fileuploader_tui.py
+python -m py_compile fileuploader/*.py fileuploader_cli.py fileuploader_gui.py fileuploader_tui.py
 ```
 
 Expected local smoke checks:
 
 ```shell
-python -m fileuploader services --json
+python -m fileuploader_cli services --json
 python -c "from fileuploader_tui import service_table; print(len(service_table().rows))"
 python -c "import fileuploader_gui; print(fileuploader_gui.default_state())"
 ```
@@ -157,6 +159,7 @@ python -c "import fileuploader_gui; print(fileuploader_gui.default_state())"
 
 ```text
 fileuploader/       Shared provider core, registry, formatters, and CLI
+fileuploader_cli.py CLI-only launcher
 fileuploader_gui.py Tkinter desktop interface
 fileuploader_tui.py Rich terminal interface
 GoFile/             Legacy GoFile scripts and encryption helpers

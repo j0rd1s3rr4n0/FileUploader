@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 
@@ -89,6 +91,17 @@ class CliTests(unittest.TestCase):
         with self.assertRaises(ProviderError) as error:
             build_guided_info(FakeCore(), "gofile", "", None, None)
         self.assertEqual(error.exception.code, "file_id_required")
+
+    def test_standalone_cli_launcher_shows_services(self):
+        result = subprocess.run(
+            [sys.executable, "-m", "fileuploader_cli", "services", "--json"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        payload = json.loads(result.stdout)
+        self.assertTrue(any(item["name"] == "gofile" for item in payload))
 
 
 if __name__ == "__main__":
