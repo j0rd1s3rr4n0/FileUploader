@@ -12,6 +12,8 @@ from fileuploader.models import ProviderError, ProviderInfo, UploadResult
 
 
 class FakeCore:
+    last_upload = None
+
     def services(self, include_deprecated=True):
         return [
             ProviderInfo(name="gofile", display_name="GoFile"),
@@ -19,6 +21,7 @@ class FakeCore:
         ]
 
     def upload(self, service, path, **options):
+        self.__class__.last_upload = (service, path, options)
         if service == "missing":
             raise ProviderError(service, "Unknown provider")
         return UploadResult(provider=service, status=True, url="https://example.test/file", file_id="file-1")
@@ -77,6 +80,34 @@ class CliTests(unittest.TestCase):
         payload = json.loads(result.output)
         self.assertEqual(payload["provider"], "gofile")
         self.assertEqual(payload["url"], "https://example.test/file")
+
+    @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
+    def test_upload_passes_provider_specific_options(self, _core):
+        result = self.runner.invoke(
+            app,
+            [
+                "upload",
+                "sample.txt",
+                "--service",
+                "exploitsend",
+                "--password",
+                "secret",
+                "--ttl",
+                "3600",
+                "--max-downloads",
+                "3",
+                "--notify-jid",
+                "user@example",
+                "--json",
+            ],
+        )
+
+        self.assertEqual(result.exit_code, 0, result.output)
+        _service, _path, options = FakeCore.last_upload
+        self.assertEqual(options["password"], "secret")
+        self.assertEqual(options["ttl"], "3600")
+        self.assertEqual(options["max_downloads"], "3")
+        self.assertEqual(options["notify_jid"], "user@example")
 
     @patch("fileuploader.cli.FileUploaderCore", return_value=FakeCore())
     def test_upload_invalid_provider_returns_error(self, _core):

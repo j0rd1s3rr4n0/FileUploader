@@ -4,7 +4,7 @@ Unified Python tooling for uploading files through CLI, GUI, and TUI workflows.
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-2563eb.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-047857.svg)](LICENSE)
-[![Providers](https://img.shields.io/badge/providers-24-0f766e.svg)](#provider-matrix)
+[![Providers](https://img.shields.io/badge/providers-25-0f766e.svg)](#provider-matrix)
 [![Interfaces](https://img.shields.io/badge/interfaces-CLI%20%7C%20GUI%20%7C%20TUI-111827.svg)](#interfaces)
 [![Validation](https://img.shields.io/badge/tests-unittest-7c3aed.svg)](#development)
 
@@ -18,7 +18,7 @@ Most file hosts expose different request shapes, response formats, and failure m
 
 | What you need | Use this |
 | --- | --- |
-| Quick public link, no account | `catbox`, `fileio`, `0x0`, `tempsh`, `transfersh`, `gofile` |
+| Quick public link, no account | `exploitsend`, `catbox`, `fileio`, `0x0`, `tempsh`, `transfersh`, `gofile` |
 | Automation and scripting | `python -m fileuploader_cli ... --json --no-banner` |
 | Desktop workflow | `python -m fileuploader_gui` |
 | Interactive terminal flow | `python -m fileuploader_tui` |
@@ -88,6 +88,8 @@ Use these first when you just need a public link and do not want to create an ac
 ```shell
 python -m fileuploader_cli upload --service catbox path/to/file.txt
 python -m fileuploader_cli upload --service fileio path/to/file.txt
+python -m fileuploader_cli upload --service exploitsend path/to/file.txt
+python -m fileuploader_cli upload --service exploitsend path/to/file.txt --password secret --ttl 3600 --max-downloads 3
 python -m fileuploader_cli upload --service 0x0 path/to/file.txt
 python -m fileuploader_cli upload --service transfersh path/to/file.txt
 python -m fileuploader_cli upload --service tempsh path/to/file.txt
@@ -196,6 +198,7 @@ Rich provider table -> guided prompts -> normalized result panel
 | Dropbox | `dropbox` | Yes | No | Yes | Yes | Active |
 | dropfile.dev | `dropfiledev` | Yes | No | No | No | Active |
 | EasySend | `easysend` | Yes | No | No | No | Active |
+| Exploit.IN Send | `exploitsend` | Yes | No | Yes | No | Active |
 | file.io | `fileio` | Yes | No | No | No | Active |
 | GoFile | `gofile` | Yes | Yes | No | No | Active |
 | JSONBin | `jsonbin` | Yes | No | No | Yes | Active |
@@ -218,6 +221,7 @@ Rich provider table -> guided prompts -> normalized result panel
 | Service | Good for |
 | --- | --- |
 | `catbox` | Simple public file links |
+| `exploitsend` | Client-side encrypted links |
 | `fileio` | Temporary links with JSON responses |
 | `0x0` | Minimal terminal uploads |
 | `tempsh` | Temporary file sharing |
@@ -225,6 +229,8 @@ Rich provider table -> guided prompts -> normalized result panel
 | `gofile` | Upload plus basic download support |
 
 Retention, file size limits, rate limits, and content policies are controlled by each upstream provider.
+
+`exploitsend` encrypts locally before upload using AES-GCM and returns a link with the decryption key after `#`, matching the web app's client-side format.
 
 ### Account-Backed Providers
 

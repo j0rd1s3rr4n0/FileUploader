@@ -2,11 +2,13 @@ import base64
 import hashlib
 import json
 import os
+import struct
 import time
 import uuid
 from pathlib import Path
 
 import requests
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from .models import ProviderError, ProviderInfo, UploadResult
 
@@ -480,6 +482,85 @@ class TransferShProvider(BaseProvider):
         path = self._ensure_file(filepath)
         url = self._put_file_text(f"https://transfer.sh/{path.name}", path)
         return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
+
+
+class ExploitSendProvider(BaseProvider):
+    info = ProviderInfo(
+        name="exploitsend",
+        display_name="Exploit.IN Send",
+        supports_download=False,
+        supports_info=True,
+    )
+
+    base_url = "https://send.exploit.in"
+
+    def _base64url(self, data):
+        return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+    def _encryption_key(self):
+        raw_key = os.urandom(32)
+        return raw_key, self._base64url(raw_key)
+
+    def _derive_key(self, raw_key, password):
+        if not password:
+            return raw_key
+        return hashlib.sha256(raw_key + password.encode("utf-8")).digest()
+
+    def _encrypted_payload(self, data, raw_key, password):
+        key = self._derive_key(raw_key, password)
+        nonce = os.urandom(12)
+        encrypted = AESGCM(key).encrypt(nonce, data, None)
+        return struct.pack(">I", len(nonce)) + nonce + encrypted
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        password = options.get("password") or ""
+        ttl = str(options.get("ttl") or "2592000")
+        max_downloads = str(options.get("max_downloads") or "1")
+        notify_jid = options.get("notify_jid") or ""
+        raw_key, encoded_key = self._encryption_key()
+        encrypted = self._encrypted_payload(path.read_bytes(), raw_key, password)
+        try:
+            response = self.http.post(
+                f"{self.base_url}/api/upload",
+                files={"file": ("encrypted.bin", encrypted, "application/octet-stream")},
+                data={
+                    "filename": path.name,
+                    "ttl": ttl,
+                    "max_downloads": max_downloads,
+                    "password": password,
+                    "notify_jid": notify_jid,
+                },
+            )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        payload = self._json_response(response)
+        if not payload.get("success"):
+            raise ProviderError(self.info.name, payload.get("error", "Upload failed"), code="upload_failed")
+        file_id = payload.get("id")
+        if not file_id:
+            raise ProviderError(self.info.name, "Upload response did not include a file id", code="missing_file_id")
+        url = f"{self.base_url}/#{file_id}!{encoded_key}"
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=url,
+            file_id=file_id,
+            metadata={
+                "ttl": ttl,
+                "max_downloads": max_downloads,
+                "password_protected": bool(password),
+                "notify_jid": bool(notify_jid),
+            },
+            raw=payload,
+        )
+
+    def info_file(self, file_id, **options):
+        try:
+            response = self.http.get(f"{self.base_url}/api/check", params={"id": file_id})
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
 
 
 class FourSharedProvider(BaseProvider):

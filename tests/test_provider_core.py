@@ -14,6 +14,7 @@ from fileuploader.providers import (
     DropFileDevProvider,
     DropboxProvider,
     EasySendProvider,
+    ExploitSendProvider,
     FileIoProvider,
     GoFileProvider,
     LitterboxProvider,
@@ -81,6 +82,7 @@ class ProviderCoreTests(unittest.TestCase):
                 "dropfiledev",
                 "dropbox",
                 "easysend",
+                "exploitsend",
                 "fileio",
                 "gofile",
                 "jsonbin",
@@ -112,6 +114,7 @@ class ProviderCoreTests(unittest.TestCase):
         self.assertIn("fileio", names)
         self.assertIn("catbox", names)
         self.assertIn("4shared", names)
+        self.assertIn("exploitsend", names)
 
     def test_unknown_provider_raises_normalized_error(self):
         with self.assertRaises(ProviderError) as error:
@@ -383,6 +386,40 @@ class ProviderCoreTests(unittest.TestCase):
 
         self.assertEqual(result["id"], "four-file-1")
         self.assertEqual(http.calls[0][1], "https://api.4shared.com/v1_2/files/four-file-1?oauth_token=tok")
+
+    def test_exploit_send_upload_encrypts_and_normalizes_url(self):
+        payload = {"success": True, "id": "send-file-1"}
+        http = FakeHttp(payload)
+        provider = ExploitSendProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source, password="secret", ttl="3600", max_downloads="5")
+
+        self.assertEqual(result.provider, "exploitsend")
+        self.assertTrue(result.url.startswith("https://send.exploit.in/#send-file-1!"))
+        self.assertEqual(result.file_id, "send-file-1")
+        self.assertEqual(http.calls[0][1], "https://send.exploit.in/api/upload")
+        self.assertEqual(http.calls[0][2]["data"]["filename"], "sample.txt")
+        self.assertEqual(http.calls[0][2]["data"]["ttl"], "3600")
+        self.assertEqual(http.calls[0][2]["data"]["max_downloads"], "5")
+        encrypted_file = http.calls[0][2]["files"]["file"]
+        encrypted_bytes = encrypted_file[1]
+        self.assertEqual(encrypted_file[0], "encrypted.bin")
+        self.assertGreater(len(encrypted_bytes), len("data"))
+        self.assertEqual(int.from_bytes(encrypted_bytes[:4], "big"), 12)
+
+    def test_exploit_send_info_uses_check_endpoint(self):
+        payload = {"exists": True, "available": True, "filename": "sample.txt"}
+        http = FakeHttp(payload)
+        provider = ExploitSendProvider(http_client=http)
+
+        result = provider.info_file("send-file-1")
+
+        self.assertTrue(result["exists"])
+        self.assertEqual(http.calls[0][1], "https://send.exploit.in/api/check")
+        self.assertEqual(http.calls[0][2]["params"]["id"], "send-file-1")
 
     def test_dropbox_upload_uses_content_endpoint(self):
         payload = {"id": "dropbox-file-1", "path_display": "/sample.txt", "name": "sample.txt"}
