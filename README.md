@@ -4,7 +4,7 @@ Unified Python tooling for uploading files through CLI, GUI, and TUI workflows.
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-2563eb.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-047857.svg)](LICENSE)
-[![Providers](https://img.shields.io/badge/providers-23-0f766e.svg)](#provider-matrix)
+[![Providers](https://img.shields.io/badge/providers-24-0f766e.svg)](#provider-matrix)
 [![Interfaces](https://img.shields.io/badge/interfaces-CLI%20%7C%20GUI%20%7C%20TUI-111827.svg)](#interfaces)
 [![Validation](https://img.shields.io/badge/tests-unittest-7c3aed.svg)](#development)
 
@@ -22,7 +22,7 @@ Most file hosts expose different request shapes, response formats, and failure m
 | Automation and scripting | `python -m fileuploader_cli ... --json --no-banner` |
 | Desktop workflow | `python -m fileuploader_gui` |
 | Interactive terminal flow | `python -m fileuploader_tui` |
-| Account-backed storage | `box`, `dropbox`, `mediafire`, `jsonbin`, `anonfilesnew` |
+| Account-backed storage | `4shared`, `box`, `dropbox`, `mediafire`, `jsonbin`, `anonfilesnew` |
 
 ## Interfaces
 
@@ -114,6 +114,7 @@ Pass credentials directly:
 ```shell
 python -m fileuploader_cli upload --service anonfilesnew path/to/file.txt --api-key YOUR_API_KEY
 python -m fileuploader_cli upload --service box path/to/file.txt --api-key BOX_OAUTH_ACCESS_TOKEN
+python -m fileuploader_cli upload --service 4shared path/to/file.txt --api-key "oauth_token=...&oauth_signature=..."
 ```
 
 Or read them from environment variables:
@@ -186,6 +187,7 @@ Rich provider table -> guided prompts -> normalized result panel
 | Provider | Service | Upload | Download | Info | API key | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0x0.st | `0x0` | Yes | No | No | No | Active |
+| 4shared | `4shared` | Yes | No | Yes | Yes | Active |
 | AnonFilesNew | `anonfilesnew` | Yes | No | Yes | Yes | Active |
 | blipbin | `blipbin` | Yes | No | No | No | Active |
 | Box | `box` | Yes | No | Yes | Yes | Active |
@@ -228,6 +230,7 @@ Retention, file size limits, rate limits, and content policies are controlled by
 
 | Service | Credential |
 | --- | --- |
+| `4shared` | OAuth query parameters |
 | `anonfilesnew` | API key |
 | `box` | OAuth access token |
 | `dropbox` | OAuth access token |
@@ -235,6 +238,8 @@ Retention, file size limits, rate limits, and content policies are controlled by
 | `mediafire` | MediaFire session token |
 
 Prefer `--api-key-env` for repeat usage so secrets stay outside shell history.
+
+For `4shared`, pass the already signed OAuth query string through `--api-key` or `FOURSHARED_OAUTH_PARAMS`. The provider uses the simple upload endpoint for files below 150 MB and uploads to folder `0` unless a future interface supplies a different `folder_id`.
 
 ### Disabled and Deprecated Providers
 

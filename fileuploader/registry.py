@@ -1,5 +1,6 @@
 from .models import ProviderError
 from .providers import (
+    FourSharedProvider,
     AnonFilesNewProvider,
     AnonFilesProvider,
     BayFilesProvider,
@@ -67,6 +68,7 @@ def create_default_registry():
             CatboxProvider(),
             LitterboxProvider(),
             TransferShProvider(),
+            FourSharedProvider(),
             BoxProvider(),
             DropboxProvider(),
             MediaFireProvider(),
