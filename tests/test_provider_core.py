@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fileuploader import FileUploaderCore, ProviderError, create_default_registry
 from fileuploader.providers import (
+    FourSharedProvider,
     AnonFilesNewProvider,
     BlipbinProvider,
     BoxProvider,
@@ -69,6 +70,7 @@ class ProviderCoreTests(unittest.TestCase):
         self.assertEqual(
             {
                 "0x0",
+                "4shared",
                 "anonfiles",
                 "anonfilesnew",
                 "bayfiles",
@@ -109,6 +111,7 @@ class ProviderCoreTests(unittest.TestCase):
         self.assertIn("dropbox", names)
         self.assertIn("fileio", names)
         self.assertIn("catbox", names)
+        self.assertIn("4shared", names)
 
     def test_unknown_provider_raises_normalized_error(self):
         with self.assertRaises(ProviderError) as error:
@@ -348,6 +351,38 @@ class ProviderCoreTests(unittest.TestCase):
         self.assertEqual(result.url, "https://box.com/s/file")
         self.assertEqual(result.file_id, "box-file-1")
         self.assertEqual(http.calls[0][2]["headers"]["Authorization"], "Bearer box-token")
+
+    def test_4shared_upload_uses_oauth_params_and_folder(self):
+        payload = {
+            "id": "four-file-1",
+            "name": "sample.txt",
+            "downloadPage": "https://www.4shared.com/file/four-file-1/sample.html",
+        }
+        http = FakeHttp(payload)
+        provider = FourSharedProvider(http_client=http)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "sample.txt"
+            source.write_text("data", encoding="utf-8")
+            result = provider.upload(source, api_key="?oauth_token=tok&oauth_signature=sig", folder_id="folder-1")
+
+        self.assertEqual(result.provider, "4shared")
+        self.assertEqual(result.url, "https://www.4shared.com/file/four-file-1/sample.html")
+        self.assertEqual(result.file_id, "four-file-1")
+        self.assertEqual(http.calls[0][1], "https://upload.4shared.com/v1_2/files?oauth_token=tok&oauth_signature=sig")
+        self.assertEqual(http.calls[0][2]["params"]["folderId"], "folder-1")
+        self.assertEqual(http.calls[0][2]["params"]["fileName"], "sample.txt")
+        self.assertEqual(http.calls[0][2]["headers"]["Content-Type"], "application/octet-stream")
+
+    def test_4shared_info_uses_oauth_params(self):
+        payload = {"id": "four-file-1", "name": "sample.txt"}
+        http = FakeHttp(payload)
+        provider = FourSharedProvider(http_client=http)
+
+        result = provider.info_file("four-file-1", api_key="oauth_token=tok")
+
+        self.assertEqual(result["id"], "four-file-1")
+        self.assertEqual(http.calls[0][1], "https://api.4shared.com/v1_2/files/four-file-1?oauth_token=tok")
 
     def test_dropbox_upload_uses_content_endpoint(self):
         payload = {"id": "dropbox-file-1", "path_display": "/sample.txt", "name": "sample.txt"}

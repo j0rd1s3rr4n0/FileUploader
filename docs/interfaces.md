@@ -36,7 +36,7 @@ Use `--no-banner` before the command when you want machine-friendly human output
 
 For quick temporary sharing, prefer the no-registration providers such as `moonpush`, `0x0`, `tempsh`, `tmpfilelink`, `blipbin`, `easysend`, `dropfiledev`, `cupload`, `qurl`, `fileio`, `uguu`, `catbox`, `litterbox`, and `transfersh`.
 
-For account-backed storage, use `box`, `dropbox`, or `mediafire` with `--api-key` or `--api-key-env`. `mega` is shown as disabled until a MEGAcmd or SDK-backed implementation is added.
+For account-backed storage, use `4shared`, `box`, `dropbox`, or `mediafire` with `--api-key` or `--api-key-env`. `4shared` expects signed OAuth query parameters; `mega` is shown as disabled until a MEGAcmd or SDK-backed implementation is added.
 
 Typer is used because it provides a modern command surface while building on Click internally. Click is therefore covered as the underlying command framework. The older argparse scripts remain available as legacy provider-specific entrypoints, but new automation should use `python -m fileuploader`.
 

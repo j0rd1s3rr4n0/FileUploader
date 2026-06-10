@@ -482,6 +482,54 @@ class TransferShProvider(BaseProvider):
         return UploadResult(provider=self.info.name, status=True, url=url, raw={"response": url})
 
 
+class FourSharedProvider(BaseProvider):
+    info = ProviderInfo(
+        name="4shared",
+        display_name="4shared",
+        supports_download=False,
+        supports_info=True,
+        requires_api_key=True,
+    )
+
+    def _oauth_params(self, options):
+        oauth_params = self._api_key(options, "FOURSHARED_OAUTH_PARAMS", "4shared OAuth query parameters")
+        return oauth_params.lstrip("?")
+
+    def upload(self, filepath, **options):
+        path = self._ensure_file(filepath)
+        oauth_params = self._oauth_params(options)
+        folder_id = options.get("folder_id") or "0"
+        params = {"folderId": folder_id, "fileName": path.name}
+        url = f"https://upload.4shared.com/v1_2/files?{oauth_params}"
+        try:
+            with path.open("rb") as file_handle:
+                response = self.http.post(
+                    url,
+                    params=params,
+                    headers={"Content-Type": "application/octet-stream"},
+                    data=file_handle,
+                )
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        payload = self._json_response(response)
+        return UploadResult(
+            provider=self.info.name,
+            status=True,
+            url=payload.get("downloadPage") or payload.get("url"),
+            file_id=payload.get("id"),
+            metadata=payload,
+            raw=payload,
+        )
+
+    def info_file(self, file_id, **options):
+        oauth_params = self._oauth_params(options)
+        try:
+            response = self.http.get(f"https://api.4shared.com/v1_2/files/{file_id}?{oauth_params}")
+        except requests.RequestException as exc:
+            raise ProviderError(self.info.name, str(exc), code="network_error") from exc
+        return self._json_response(response)
+
+
 class BoxProvider(BaseProvider):
     info = ProviderInfo(
         name="box",
