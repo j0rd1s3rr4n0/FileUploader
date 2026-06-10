@@ -34,7 +34,7 @@ Use `python -m fileuploader_cli guided` for a step-by-step flow that shows provi
 
 Use `--no-banner` before the command when you want machine-friendly human output without the banner. JSON output never includes the banner.
 
-For quick temporary sharing, prefer the no-registration providers such as `moonpush`, `0x0`, `tempsh`, `tmpfilelink`, `blipbin`, `easysend`, `dropfiledev`, `cupload`, `qurl`, `fileio`, `uguu`, `catbox`, `litterbox`, and `transfersh`.
+For quick temporary sharing, prefer the no-registration providers such as `exploitsend`, `moonpush`, `0x0`, `tempsh`, `tmpfilelink`, `blipbin`, `easysend`, `dropfiledev`, `cupload`, `qurl`, `fileio`, `uguu`, `catbox`, `litterbox`, and `transfersh`.
 
 For account-backed storage, use `4shared`, `box`, `dropbox`, or `mediafire` with `--api-key` or `--api-key-env`. `4shared` expects signed OAuth query parameters; `mega` is shown as disabled until a MEGAcmd or SDK-backed implementation is added.
 

@@ -133,6 +133,10 @@ def upload(
     service: str = typer.Option(..., "--service", "-s", help="Provider name. Run `services` to list choices."),
     api_key: Optional[str] = typer.Option(None, "--api-key", help="Provider API key. Prefer --api-key-env for repeat use."),
     api_key_env: Optional[str] = typer.Option(None, "--api-key-env", help="Environment variable that contains the API key."),
+    password: Optional[str] = typer.Option(None, "--password", help="Optional provider password when supported."),
+    ttl: Optional[str] = typer.Option(None, "--ttl", help="Provider retention in seconds when supported."),
+    max_downloads: Optional[str] = typer.Option(None, "--max-downloads", help="Provider download limit when supported."),
+    notify_jid: Optional[str] = typer.Option(None, "--notify-jid", help="Optional notification JID when supported."),
     json_output: bool = typer.Option(False, "--json", help="Print JSON output."),
     plaintext: bool = typer.Option(False, "--plaintext", help="Print plaintext output."),
     copy: bool = typer.Option(False, "--copy", help="Copy output to clipboard."),
@@ -147,6 +151,10 @@ def upload(
             path,
             api_key=_resolve_api_key(api_key, api_key_env),
             api_key_env=api_key_env,
+            password=password,
+            ttl=ttl,
+            max_downloads=max_downloads,
+            notify_jid=notify_jid,
             verbose=verbose,
         )
     except ProviderError as error:

@@ -20,6 +20,10 @@ class TuiRequest:
     file_id: str = ""
     api_key: str = ""
     api_key_env: str = ""
+    password: str = ""
+    ttl: str = ""
+    max_downloads: str = ""
+    notify_jid: str = ""
     json_output: bool = False
 
 
@@ -51,6 +55,10 @@ def request_options(request: TuiRequest) -> dict:
         "api_key": request.api_key or None,
         "api_key_env": request.api_key_env or None,
         "url": request.url or None,
+        "password": request.password or None,
+        "ttl": request.ttl or None,
+        "max_downloads": request.max_downloads or None,
+        "notify_jid": request.notify_jid or None,
     }
 
 
@@ -96,6 +104,15 @@ class FileUploaderTui:
             path = Prompt.ask("File path to upload", default="") if action == "upload" else ""
             url = Prompt.ask("Download URL", default="") if action == "download" else ""
             file_id = Prompt.ask("Provider file ID", default="") if action == "info" else ""
+            password = ""
+            ttl = ""
+            max_downloads = ""
+            notify_jid = ""
+            if service == "exploitsend" and action == "upload":
+                password = Prompt.ask("Password, leave blank for none", password=True, default="")
+                ttl = Prompt.ask("Retention seconds", default="2592000")
+                max_downloads = Prompt.ask("Max downloads", default="1")
+                notify_jid = Prompt.ask("Notify JID, leave blank if not needed", default="")
             api_key = Prompt.ask("API key, leave blank if not needed", password=True, default="")
             api_key_env = Prompt.ask("API key environment variable, leave blank if not needed", default="")
             json_output = Confirm.ask("JSON output?", default=False)
@@ -109,6 +126,10 @@ class FileUploaderTui:
                     file_id=file_id,
                     api_key=api_key,
                     api_key_env=api_key_env,
+                    password=password,
+                    ttl=ttl,
+                    max_downloads=max_downloads,
+                    notify_jid=notify_jid,
                     json_output=json_output,
                 )
             )

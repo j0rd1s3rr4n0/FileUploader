@@ -34,6 +34,10 @@ class GuiState:
     file_id: str = ""
     api_key: str = ""
     api_key_env: str = ""
+    password: str = ""
+    ttl: str = ""
+    max_downloads: str = ""
+    notify_jid: str = ""
     json_output: bool = False
 
 
@@ -46,6 +50,10 @@ def build_options(state: GuiState) -> dict:
         "api_key": state.api_key or None,
         "api_key_env": state.api_key_env or None,
         "url": state.url or None,
+        "password": state.password or None,
+        "ttl": state.ttl or None,
+        "max_downloads": state.max_downloads or None,
+        "notify_jid": state.notify_jid or None,
     }
 
 
@@ -110,6 +118,8 @@ def required_fields_for_state(state: GuiState, service) -> set[str]:
     fields = set()
     if state.action == "upload":
         fields.add("path")
+        if service.name == "exploitsend":
+            fields.update({"password", "ttl", "max_downloads", "notify_jid"})
     elif state.action == "download":
         fields.add("url")
     elif state.action == "info":
@@ -252,13 +262,37 @@ class FileUploaderGui:
         self.api_key_env_entry = ttk.Entry(controls, textvariable=self.api_key_env_var)
         self.api_key_env_entry.grid(row=15, column=0, columnspan=4, sticky="ew", pady=(0, 10))
 
+        self.password_label = ttk.Label(controls, text="Password (optional)")
+        self.password_label.grid(row=16, column=0, sticky="w", pady=(2, 5))
+        self.password_var = tk.StringVar()
+        self.password_entry = ttk.Entry(controls, textvariable=self.password_var, show="*")
+        self.password_entry.grid(row=17, column=0, columnspan=4, sticky="ew", pady=(0, 10))
+
+        self.ttl_label = ttk.Label(controls, text="Retention seconds")
+        self.ttl_label.grid(row=18, column=0, sticky="w", pady=(2, 5))
+        self.ttl_var = tk.StringVar(value="2592000")
+        self.ttl_entry = ttk.Entry(controls, textvariable=self.ttl_var)
+        self.ttl_entry.grid(row=19, column=0, columnspan=2, sticky="ew", pady=(0, 10), padx=(0, 6))
+
+        self.max_downloads_label = ttk.Label(controls, text="Max downloads")
+        self.max_downloads_label.grid(row=18, column=2, sticky="w", pady=(2, 5), padx=(6, 0))
+        self.max_downloads_var = tk.StringVar(value="1")
+        self.max_downloads_entry = ttk.Entry(controls, textvariable=self.max_downloads_var)
+        self.max_downloads_entry.grid(row=19, column=2, columnspan=2, sticky="ew", pady=(0, 10), padx=(6, 0))
+
+        self.notify_jid_label = ttk.Label(controls, text="Notify JID (optional)")
+        self.notify_jid_label.grid(row=20, column=0, sticky="w", pady=(2, 5))
+        self.notify_jid_var = tk.StringVar()
+        self.notify_jid_entry = ttk.Entry(controls, textvariable=self.notify_jid_var)
+        self.notify_jid_entry.grid(row=21, column=0, columnspan=4, sticky="ew", pady=(0, 10))
+
         self.json_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(controls, text="JSON output", variable=self.json_var).grid(row=16, column=0, columnspan=2, sticky="w", pady=(0, 12))
-        ttk.Button(controls, text="Run", command=self._run_action, style="Accent.TButton").grid(row=17, column=0, columnspan=2, sticky="ew", pady=(0, 10), padx=(0, 6))
-        ttk.Button(controls, text="Copy", command=self._copy_result).grid(row=17, column=2, columnspan=2, sticky="ew", pady=(0, 10), padx=(6, 0))
+        ttk.Checkbutton(controls, text="JSON output", variable=self.json_var).grid(row=22, column=0, columnspan=2, sticky="w", pady=(0, 12))
+        ttk.Button(controls, text="Run", command=self._run_action, style="Accent.TButton").grid(row=23, column=0, columnspan=2, sticky="ew", pady=(0, 10), padx=(0, 6))
+        ttk.Button(controls, text="Copy", command=self._copy_result).grid(row=23, column=2, columnspan=2, sticky="ew", pady=(0, 10), padx=(6, 0))
 
         self.hint_var = tk.StringVar(value="Upload: choose a file. Download: enter URL. Info: enter file id.")
-        ttk.Label(controls, textvariable=self.hint_var, style="Hint.TLabel", wraplength=330).grid(row=18, column=0, columnspan=4, sticky="ew", pady=(2, 0))
+        ttk.Label(controls, textvariable=self.hint_var, style="Hint.TLabel", wraplength=330).grid(row=24, column=0, columnspan=4, sticky="ew", pady=(2, 0))
 
         for column in range(4):
             controls.columnconfigure(column, weight=1)
@@ -333,6 +367,10 @@ class FileUploaderGui:
         self._grid_or_hide([self.url_label, self.url_entry], "url" in fields)
         self._grid_or_hide([self.file_id_label, self.file_id_entry], "file_id" in fields)
         self._grid_or_hide([self.api_key_label, self.api_key_entry, self.api_key_env_label, self.api_key_env_entry], "api_key" in fields)
+        self._grid_or_hide([self.password_label, self.password_entry], "password" in fields)
+        self._grid_or_hide([self.ttl_label, self.ttl_entry], "ttl" in fields)
+        self._grid_or_hide([self.max_downloads_label, self.max_downloads_entry], "max_downloads" in fields)
+        self._grid_or_hide([self.notify_jid_label, self.notify_jid_entry], "notify_jid" in fields)
         self.hint_var.set(self._hint_text(state, service, fields))
 
     def _hint_text(self, state, service, fields):
@@ -347,6 +385,10 @@ class FileUploaderGui:
             "url": "enter a download URL",
             "file_id": "enter a file id",
             "api_key": "enter an API key or API key environment variable",
+            "password": "optionally set a password",
+            "ttl": "set retention seconds",
+            "max_downloads": "set max downloads",
+            "notify_jid": "optionally set a notification JID",
         }
         return f"{service.display_name} {state.action}: " + "; ".join(labels[field] for field in sorted(fields))
 
@@ -359,6 +401,10 @@ class FileUploaderGui:
             file_id=self.file_id_var.get(),
             api_key=self.api_key_var.get(),
             api_key_env=self.api_key_env_var.get(),
+            password=self.password_var.get(),
+            ttl=self.ttl_var.get(),
+            max_downloads=self.max_downloads_var.get(),
+            notify_jid=self.notify_jid_var.get(),
             json_output=self.json_var.get(),
         )
 

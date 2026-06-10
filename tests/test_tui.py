@@ -19,6 +19,27 @@ class TuiSmokeTests(unittest.TestCase):
         self.assertIsNone(options["api_key"])
         self.assertIsNone(options["api_key_env"])
         self.assertIsNone(options["url"])
+        self.assertIsNone(options["password"])
+        self.assertIsNone(options["ttl"])
+        self.assertIsNone(options["max_downloads"])
+        self.assertIsNone(options["notify_jid"])
+
+    def test_request_options_keeps_provider_specific_values(self):
+        options = request_options(
+            TuiRequest(
+                service="exploitsend",
+                action="upload",
+                password="secret",
+                ttl="3600",
+                max_downloads="3",
+                notify_jid="user@example",
+            )
+        )
+
+        self.assertEqual(options["password"], "secret")
+        self.assertEqual(options["ttl"], "3600")
+        self.assertEqual(options["max_downloads"], "3")
+        self.assertEqual(options["notify_jid"], "user@example")
 
     def test_service_table_contains_provider_rows(self):
         table = service_table(FakeCore())

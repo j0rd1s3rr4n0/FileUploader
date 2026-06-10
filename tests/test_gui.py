@@ -32,11 +32,25 @@ class GuiSmokeTests(unittest.TestCase):
         self.assertIsNone(options["url"])
 
     def test_build_options_keeps_user_values(self):
-        options = build_options(GuiState(api_key="key", api_key_env="KEY_ENV", url="https://example.test"))
+        options = build_options(
+            GuiState(
+                api_key="key",
+                api_key_env="KEY_ENV",
+                url="https://example.test",
+                password="secret",
+                ttl="3600",
+                max_downloads="3",
+                notify_jid="user@example",
+            )
+        )
 
         self.assertEqual(options["api_key"], "key")
         self.assertEqual(options["api_key_env"], "KEY_ENV")
         self.assertEqual(options["url"], "https://example.test")
+        self.assertEqual(options["password"], "secret")
+        self.assertEqual(options["ttl"], "3600")
+        self.assertEqual(options["max_downloads"], "3")
+        self.assertEqual(options["notify_jid"], "user@example")
 
     def test_validate_state_requires_upload_file(self):
         with self.assertRaises(ProviderError) as error:
@@ -86,6 +100,13 @@ class GuiSmokeTests(unittest.TestCase):
         fields = required_fields_for_state(GuiState(action="info"), service)
 
         self.assertEqual(fields, {"file_id", "api_key"})
+
+    def test_required_fields_include_exploit_send_upload_options(self):
+        service = ProviderInfo(name="exploitsend", display_name="Exploit.IN Send", supports_info=True)
+
+        fields = required_fields_for_state(GuiState(service="exploitsend", action="upload"), service)
+
+        self.assertEqual(fields, {"path", "password", "ttl", "max_downloads", "notify_jid"})
 
     def test_validate_state_rejects_unsupported_action(self):
         service = ProviderInfo(name="jsonbin", display_name="JSONBin", supports_download=False)
